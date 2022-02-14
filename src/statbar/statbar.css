@@ -1,0 +1,12 @@
+footer.statbar {
+  padding: 0 1em;
+  height: 20px;
+  color: #fff;
+  font-size: 12px;
+  background-color: var(--primary-bg-color);
+  line-height: 20px;
+}
+
+span.statbar__info {
+  margin-right: 2em;
+}

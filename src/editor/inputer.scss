@@ -1,0 +1,40 @@
+@keyframes flash {
+  0% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0;
+  }
+  70% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.inputer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  .inputer__caret {
+    width: 1px;
+    height: 50%;
+    animation: flash 1000ms linear infinite;
+    background: #000;
+  }
+
+  .inputer__cache {
+    width: 1px;
+    height: 1px;
+    transform: rotateX(90deg);
+    font-size: 1px;
+  }
+}

@@ -1,0 +1,90 @@
+.tools {
+  display: flex;
+  font-size: 16px;
+}
+
+.file-tools dd.tool-block__list {
+}
+
+.file-tools__btn {
+  display: block;
+  margin: 0 auto 6px;
+  height: 16px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.edit-tools-btns {
+  display: flex;
+}
+
+a.edit-tools-btn {
+  display: block;
+  width: 24px;
+  height: 24px;
+  text-align: center;
+  line-height: 24px;
+}
+
+.edit-tools__font-size-large {
+  font-size: 20px;
+}
+
+.edit-tools__font-size-small {
+  font-size: 14px;
+}
+
+.edit-tools__font-size-large::after,
+.edit-tools__font-size-small::after,
+.edit-tools__font-super::after,
+.edit-tools__font-sub::after {
+  display: inline-block;
+  vertical-align: super;
+  font-size: 12px;
+  transform: scale(0.75);
+  transform-origin: top left;
+}
+
+.edit-tools__font-super, .edit-tools__font-sub {
+  line-height: 18px;
+}
+
+.edit-tools__font-size-large::after,
+.edit-tools__font-size-small::after {
+  content: '^';
+}
+
+.edit-tools__font-size-small::after {
+  transform: rotateX(180deg) scale(0.75) translateY(12.5%);
+  transform-origin: center left;
+}
+
+.edit-tools__font-super::after,
+.edit-tools__font-sub::after {
+  content: '2';
+}
+
+.edit-tools__font-sub::after {
+  vertical-align: sub;
+  transform-origin: bottom left;
+}
+
+.edit-tools__font-bold {
+  font-weight: bold;
+}
+
+.edit-tools__font-underline {
+  text-decoration: underline;
+}
+
+.edit-tools__font-through {
+  text-decoration: line-through;
+}
+
+.edit-tools__font-italic {
+  font-style: italic;
+}
+
+.edit-tools__font-upper {
+}

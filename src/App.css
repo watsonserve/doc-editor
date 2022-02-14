@@ -1,0 +1,31 @@
+.App-header {
+  background-color: var(--primary-bg-color);
+  font-size: calc(10px + 2vmin);
+  color: var(--primary-font-color);
+}
+
+.main {
+  box-sizing: border-box;
+  padding: 16px;
+  height: calc(100vh - 148px);
+  overflow: auto;
+  background-color: #d8d7d5;
+}
+
+p {
+  min-height: 24px;
+  line-height: 24px;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

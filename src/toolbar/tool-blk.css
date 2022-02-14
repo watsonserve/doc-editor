@@ -1,0 +1,32 @@
+dl.tool-block {
+  display: flex;
+  position: relative;
+  box-sizing: border-box;
+  padding: 4px 12px 0;
+  min-width: 61px;
+  height: 92px;
+  flex-direction: column-reverse;
+}
+
+dl.tool-block::after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 2px;
+  right: 0;
+  bottom: 2px;
+  width: 1px;
+  height: 88px;
+  background-color: var(--tool-blcok-vr-color);
+}
+
+dt.tool-block__title {
+  width: 100%;
+  text-align: center;
+  flex: 16px 0 0;
+  font-size: 12px;
+}
+
+dd.tool-block__list {
+  flex: 100% 1 1;
+}
