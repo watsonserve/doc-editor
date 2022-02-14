@@ -1,5 +1,4 @@
 import React, { useEffect, useImperativeHandle, useMemo, useRef, forwardRef } from 'react';
-import './editor.styl';
 import Inputer, { IInputerCtrl } from './inputer';
 import { IPoint, Editor } from './editor';
 import { OfflineSyncer } from './collector';
