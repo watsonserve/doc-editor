@@ -30,14 +30,39 @@ export default forwardRef(function EditorView(props: IEditorProps, ref: React.Re
     };
   }, []);
 
-  useImperativeHandle(ref, () => ({
-    setSize(width: string, height: string) {
+  useImperativeHandle(ref, () => {
+  
+    const setSize = (width: string, height: string) => {
       if (!wrapperRef.current) return;
       wrapperRef.current.style.width = width;
       wrapperRef.current.style.height = height;
       editorRef.current?.resize();
-    }
-  }));
+    };
+
+    const setLineHeight = (margin = 1) => {
+      editorRef.current!.lineMargin = margin;
+    };
+
+    const setFontSize = (fontSize = 32) => {
+      editorRef.current!.fontSize = fontSize;
+      editorRef.current!.lineHeight = fontSize / 2 * 3;
+    };
+
+    return {
+      change(attr: string, val: any) {
+        switch (attr) {
+          case 'size':
+            return setSize(val.width, val.height);
+          case 'fontSize':
+            return setFontSize(val);
+          case 'lineHeight':
+            return setLineHeight(val);
+          default:
+            console.warn(attr, val);
+        }
+      }
+    };
+  });
 
   return useMemo(() => {
     console.warn('editor general');
