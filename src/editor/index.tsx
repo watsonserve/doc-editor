@@ -45,7 +45,6 @@ export default forwardRef(function EditorView(props: IEditorProps, ref: React.Re
 
     const setFontSize = (fontSize = 32) => {
       editorRef.current!.fontSize = fontSize;
-      editorRef.current!.lineHeight = fontSize / 2 * 3;
     };
 
     return {

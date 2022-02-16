@@ -22,11 +22,14 @@ export class Editor {
   private config = {
     fontSize: 32,
     family: 'serif',
-    lineHeight: 48,
+    lineMargin: 1,
     color: '#333',
     bgColor: 'transparent'
   };
-  private _point = { x: 0, y: 0 };
+  private _point = {
+    x: 0,
+    y: this.config.fontSize / 2 * 3 * (this.config.lineMargin - 1) / 2
+  };
   private _onCaretMove?: (p: IPoint) => void;
 
   constructor(sync: ISyncer) {
@@ -65,14 +68,15 @@ export class Editor {
 
   set fontSize(s: number) {
     this.config.fontSize = s * this._scale;
+    this._onCaretMove!(this.point);
   }
 
-  get lineHeight() {
-    return this.config.lineHeight / this._scale;
+  get lineMargin() {
+    return this.config.lineMargin;
   }
 
-  set lineHeight(h: number) {
-    this.config.lineHeight = h * this._scale;
+  set lineMargin(h: number) {
+    this.config.lineMargin = Math.max(1, h);
   }
 
   get bgColor() {
@@ -93,17 +97,19 @@ export class Editor {
     return {
       x: x / this._scale,
       y: y / this._scale,
-      height: this.config.lineHeight / this._scale
+      height: this.config.fontSize / 2 * 3 / this._scale
     };
   }
 
   set point(p: IPoint) {
+    const halfLineHeight = this.config.fontSize / 4 * 3;
+    const x = Math.min(this._point.x, p.x * this._scale);
     // 点击点应该是行的中间高度
-    const y = Math.min(this._point.y, p.y * this._scale - (this.config.lineHeight >> 1));
-    this._point = { x: p.x * this._scale, y };
+    const y = Math.min(this._point.y, p.y * this._scale - halfLineHeight);
+    this._point = { x, y };
     const timer = setTimeout(() => {
       clearTimeout(timer);
-      this._onCaretMove && this._onCaretMove(this.point);
+      this._onCaretMove!(this.point);
     }, 0);
   }
 
@@ -116,13 +122,13 @@ export class Editor {
     if (!ctx) return;
     let x, y: number;
 
-    const { fontSize = 32, lineHeight } = this.config;
-    // baseLine = lineHeight * 2 / 3
-    const baseLine = _point.y + ((lineHeight << 1) / 3);
+    const { fontSize = 32, lineMargin } = this.config;
+    const lineHeight = fontSize / 2 * 3;
+    const baseLine = _point.y + fontSize;
     // enter key
     if ('\n' === txt) {
       x = 0;
-      y = lineHeight;
+      y = _point.y + lineHeight * lineMargin;
     } else {
       ctx.fillStyle = this.config.bgColor;
       ctx.fillRect(_point.x, _point.y, width, lineHeight);
@@ -132,7 +138,7 @@ export class Editor {
       y = _point.y;
     }
     this._point = { x, y };
-    this._onCaretMove && this._onCaretMove(this.point);
+    this._onCaretMove!(this.point);
   }
   
   resize() {
