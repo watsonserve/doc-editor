@@ -18,10 +18,11 @@ export class Editor {
   private _collector: Collector<any>;
   private ctx: CanvasRenderingContext2D;
   private _scale = window.devicePixelRatio;
+  // 这里存储canvas使用的坐标，向外暴露的是单倍坐标值
   private config = {
-    fontSize: 16,
+    fontSize: 32,
     family: 'serif',
-    lineHeight: 24,
+    lineHeight: 48,
     color: '#333',
     bgColor: 'transparent'
   };
@@ -59,19 +60,19 @@ export class Editor {
   }
 
   get fontSize() {
-    return this.config.fontSize;
+    return this.config.fontSize / this._scale;
   }
 
   set fontSize(s: number) {
-    this.config.fontSize = s;
+    this.config.fontSize = s * this._scale;
   }
 
   get lineHeight() {
-    return this.config.lineHeight;
+    return this.config.lineHeight / this._scale;
   }
 
   set lineHeight(h: number) {
-    this.config.lineHeight = h;
+    this.config.lineHeight = h * this._scale;
   }
 
   get bgColor() {
@@ -88,15 +89,21 @@ export class Editor {
 
   get point() {
     const { x, y } = this._point;
-    return { x: x / this._scale, y: y / this._scale, height: this.config.lineHeight / this._scale };
+
+    return {
+      x: x / this._scale,
+      y: y / this._scale,
+      height: this.config.lineHeight / this._scale
+    };
   }
 
   set point(p: IPoint) {
-    const y = Math.min(this._point.y, p.y - (this.config.lineHeight >> 1));
-    this._point = { x: p.x * this._scale, y: y * this._scale };
+    // 点击点应该是行的中间高度
+    const y = Math.min(this._point.y, p.y * this._scale - (this.config.lineHeight >> 1));
+    this._point = { x: p.x * this._scale, y };
     const timer = setTimeout(() => {
       clearTimeout(timer);
-      this._onCaretMove && this._onCaretMove({ ...p, y, height: this.config.lineHeight });
+      this._onCaretMove && this._onCaretMove(this.point);
     }, 0);
   }
 
@@ -109,10 +116,9 @@ export class Editor {
     if (!ctx) return;
     let x, y: number;
 
-    const { fontSize = 16, lineHeight: _lineHeight } = this.config;
-    const lineHeight = _lineHeight * this._scale;
-    // baseLine = lineHeight * 3 / 4
-    const baseLine = _point.y + (_lineHeight * 3 >> 2);
+    const { fontSize = 32, lineHeight } = this.config;
+    // baseLine = lineHeight * 2 / 3
+    const baseLine = _point.y + ((lineHeight << 1) / 3);
     // enter key
     if ('\n' === txt) {
       x = 0;
@@ -126,7 +132,7 @@ export class Editor {
       y = _point.y;
     }
     this._point = { x, y };
-    this._onCaretMove && this._onCaretMove({ x, y, height: _lineHeight });
+    this._onCaretMove && this._onCaretMove(this.point);
   }
   
   resize() {
@@ -142,7 +148,7 @@ export class Editor {
       changed = true;
     }
     if (!changed) return;
-    this.ctx.font = `${config.fontSize * this._scale}px ${config.family}`;
+    this.ctx.font = `${config.fontSize}px ${config.family}`;
   }
 
   write(str: string) {

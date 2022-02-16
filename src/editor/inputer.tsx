@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
 import { IPoint } from './editor';
 import './inputer.scss';
 
@@ -8,11 +8,10 @@ export interface IInputerCtrl {
 
 interface IInputerProps {
   className: string;
-  onMounted: (ctrl: IInputerCtrl) => void;
   onWrite: (str: string) => void;
 }
 
-export default function Inputer(props: IInputerProps) {
+export default forwardRef(function Inputer(props: IInputerProps, ref) {
   const selfRef = useRef<HTMLDivElement>(null);
   // 输入缓存
   const inputRef = useRef<HTMLDivElement>(null);
@@ -53,19 +52,16 @@ export default function Inputer(props: IInputerProps) {
     }
   }, [follow]);
 
-  useEffect(() => {
-    console.warn('call mounted');
-    props.onMounted({
-      focus(p: IPoint) {
-        const elSelf = selfRef.current;
-        if (!elSelf) return;
-        elSelf.style.left = `${p.x || 0}px`;
-        elSelf.style.top = `${p.y || 0}px`;
-        elSelf.style.height = `${p.height || 16}px`;
-        inputRef.current?.focus();
-      }
-    });
-  }, [props]);
+  useImperativeHandle(ref, () => ({
+    focus(p: IPoint) {
+      const elSelf = selfRef.current;
+      if (!elSelf) return;
+      elSelf.style.left = `${p.x || 0}px`;
+      elSelf.style.top = `${p.y || 0}px`;
+      elSelf.style.height = `${p.height || 16}px`;
+      inputRef.current?.focus();
+    }
+  }));
 
   const className = useMemo(() => 'inputer' + (props.className ? ' ' : '') + props.className, [props.className]);
   /* 光标 & 输入缓存 */
@@ -85,4 +81,4 @@ export default function Inputer(props: IInputerProps) {
       />
     </div>
   ), [className, handleComposition, handleInput, handleKeyDown]);
-}
+});

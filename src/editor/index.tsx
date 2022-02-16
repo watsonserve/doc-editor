@@ -53,9 +53,9 @@ export default forwardRef(function EditorView(props: IEditorProps, ref: React.Re
       <div className="editor" ref={wrapperRef} onClick={handleClick}>
         {/* 光标 & 输入缓存 */}
         <Inputer
+          ref={inputerRef}
           className="editor__inputer"
           onWrite={(txt: string) => editorRef.current?.write(txt)}
-          onMounted={(ctrl: IInputerCtrl) => { inputerRef.current = ctrl; }}
         />
         {/* canvas 画板 */}
       </div>
