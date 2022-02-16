@@ -3,7 +3,7 @@ import { IToolProps } from './types';
 import ToolBlk from './tool-blk';
 
 const fontFamilyList = ['标题', '正文'];
-const fontSizeList = [10, 10.5, 11, 11.5, 12];
+const fontSizeList = [10, 10.5, 11, 11.5, 12, 16];
 
 function FontTool(props: IToolProps) {
   const fontFamilyChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
@@ -11,7 +11,7 @@ function FontTool(props: IToolProps) {
   };
 
   const fontSizeChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
-    props.onChange('fontSize', ev.target.value);
+    props.onChange('fontSize', +ev.target.value * props.dpi / 72);
   };
 
   const handleFontSizeL = () => {};
@@ -28,7 +28,7 @@ function FontTool(props: IToolProps) {
         </select>
         <select onChange={fontSizeChange}>
         {
-          fontSizeList.map(x => (<option value={x} key={x}>{x}</option>))
+          fontSizeList.map(x => (<option value={x} key={x}>{x}pt</option>))
         }
         </select>
         <a className="edit-tools-btn" onClick={handleFontSizeL}>
@@ -65,6 +65,25 @@ function FontTool(props: IToolProps) {
   );
 }
 
+function ParagraphTool(props: IToolProps) {
+  const lineHeightChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
+    props.onChange('lineHeight', ev.target.value);
+  };
+  const lineHeightList = [1, 1.5, 2];
+
+  return (
+    <ToolBlk title="段落">
+      <div className="edit-tools-btns">
+        <select onChange={lineHeightChange}>
+        {
+          lineHeightList.map(x => (<option value={x} key={x}>{x}</option>))
+        }
+        </select>
+      </div>
+    </ToolBlk>
+  );
+}
+
 export default function EditTools(props: IToolProps) {
 
   return (
@@ -74,8 +93,7 @@ export default function EditTools(props: IToolProps) {
       <ToolBlk title="剪贴板">
       </ToolBlk>
       <FontTool {...props} />
-      <ToolBlk title="段落">
-      </ToolBlk>
+      <ParagraphTool {...props} />
       <ToolBlk title="样式">
       </ToolBlk>
       <ToolBlk title="编辑">
