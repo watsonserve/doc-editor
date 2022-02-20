@@ -1,177 +1,107 @@
-import { Collector, ISyncer } from './collector';
+import CaretInputer from './inputer';
+import { IPoint, Editor } from './core';
+import { OfflineSyncer } from './collector';
 
-export interface IPoint {
-  x: number;
-  y: number;
-  width?: number;
-  height?: number;
+interface IEditorProps {
 }
 
-interface IChange {
-  txt: string;
-  paragraph: number;
-  width: number;
-};
+export default class EditorView extends HTMLElement {
+  private elWrapper = document.createElement('div');
+  private elInputer = new CaretInputer();
+  private readonly editorRef = new Editor(new OfflineSyncer());
+  private readonly elStyle = document.createElement('style');
 
-export class Editor {
-  private readonly elCanvas = document.createElement('canvas');
-  private _collector: Collector<any>;
-  private ctx: CanvasRenderingContext2D;
-  private _scale = window.devicePixelRatio;
-  // 这里存储canvas使用的坐标，向外暴露的是单倍坐标值
-  private config = {
-    fontSize: 32,
-    family: 'serif',
-    lineMargin: 1,
-    color: '#333',
-    bgColor: 'transparent'
-  };
-  private _point = {
-    x: 0,
-    y: this.config.fontSize / 2 * 3 * (this.config.lineMargin - 1) / 2
-  };
-  private _onCaretMove?: (p: IPoint) => void;
+  constructor() {
+    super();
 
-  constructor(sync: ISyncer) {
-    this._collector = new Collector(sync);
-    this._collector.onRecv = (payload: IChange) => this.draw({ ...payload, width: payload.width * this._scale });
-    this.elCanvas.setAttribute('class', 'editor__canvas');
-    const ctx = this.elCanvas.getContext('2d');
-    if (!ctx) throw new Error('get canvas 2d context faild');
-    this.ctx = ctx;
+    this.elWrapper.setAttribute('class', 'editor');
+    this.elWrapper.onclick = ev => this._handleClick(ev);
+    this.elInputer.setAttribute('class', 'editor__inputer');
+    this.elInputer.oninput = (ev: Event) => {
+      const str = (ev as InputEvent).data || '';
+      this.editorRef.write(str);
+    };
 
-    this.elCanvas.addEventListener('resize', this.resize);
+    this.editorRef.onCaretMove = (p: IPoint) => {
+      const elSelf = this.elInputer;
+      elSelf.style.left = `${p.x || 0}px`;
+      elSelf.style.top = `${p.y || 0}px`;
+      elSelf.style.height = `${p.height || 16}px`;
+      elSelf.focus();
+    };
+    this.editorRef.resize();
+    this.editorRef.bgColor = '#f00';
+
+    const shadow = this.attachShadow({ mode: 'closed' });
+    this.elWrapper.appendChild(this.elInputer);
+    this.elWrapper.appendChild(this.editorRef.canvas);
+    shadow.appendChild(this.elStyle);
+    shadow.appendChild(this.elWrapper);
+    this.elStyle.innerHTML = `
+      .editor {
+        display: flex;
+        position: relative;
+        outline: 0;
+        box-sizing: border-box;
+        margin: 0 auto;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        overflow: auto;
+        text-align: left;
+        background: #fff;
+      }
+
+      .editor canvas.editor__canvas {
+        width: 100%;
+        height: 100%;
+      }
+
+      .editor .editor__inputer {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    `;
   }
 
   destroy() {
-    console.warn('on editor destroy');
-    this.elCanvas.removeEventListener('resize', this.resize);
-    this._collector.destroy();
-    document.removeChild(this.elCanvas);
+    console.warn('on editor unmount');
+    this.editorRef.destroy();
   }
 
-  set syncer(sync: ISyncer) {
-    this._collector.syncLayout = sync;
+  private _setSize(width: string, height: string) {
+    this.elWrapper.style.width = width;
+    this.elWrapper.style.height = height;
+    this.editorRef.resize();
   }
 
-  get scale() {
-    return this._scale;
+  private _setLineHeight(margin = 1) {
+    this.editorRef.lineMargin = margin;
   }
 
-  set scale(s: number) {
-    this._scale = s;
+  private _setFontSize(fontSize = 32) {
+    this.editorRef.fontSize = fontSize;
   }
 
-  get fontSize() {
-    return this.config.fontSize / this._scale;
-  }
+  private _handleClick(ev: MouseEvent) {
+    const x = Math.max(ev.offsetX - 4, 0);
+    const y = ev.offsetY;
+    this.editorRef.point = { x, y };
+  };
 
-  set fontSize(s: number) {
-    this.config.fontSize = s * this._scale;
-    this._onCaretMove!(this.point);
-  }
-
-  get lineMargin() {
-    return this.config.lineMargin;
-  }
-
-  set lineMargin(h: number) {
-    this.config.lineMargin = Math.max(1, h);
-  }
-
-  get bgColor() {
-    return this.config.bgColor;
-  }
-
-  set bgColor(c: string) {
-    this.config.bgColor = c;
-  }
-
-  get canvas() {
-    return this.elCanvas;
-  }
-
-  get point() {
-    const { x, y } = this._point;
-
-    return {
-      x: x / this._scale,
-      y: y / this._scale,
-      height: this.config.fontSize / 2 * 3 / this._scale
-    };
-  }
-
-  set point(p: IPoint) {
-    const halfLineHeight = this.config.fontSize / 4 * 3;
-    const x = Math.min(this._point.x, p.x * this._scale);
-    // 点击点应该是行的中间高度
-    const y = Math.min(this._point.y, p.y * this._scale - halfLineHeight);
-    this._point = { x, y };
-    const timer = setTimeout(() => {
-      clearTimeout(timer);
-      this._onCaretMove!(this.point);
-    }, 0);
-  }
-
-  set onCaretMove(fn: (p: IPoint) => void) {
-    this._onCaretMove = fn;
-  }
-
-  private draw({ txt, width, paragraph }: any) {
-    const { ctx, _point } = this;
-    if (!ctx) return;
-    let x, y: number;
-
-    const { fontSize = 32, lineMargin } = this.config;
-    const lineHeight = fontSize / 2 * 3;
-    const baseLine = _point.y + fontSize;
-    // enter key
-    if ('\n' === txt) {
-      x = 0;
-      y = _point.y + lineHeight * lineMargin;
-    } else {
-      ctx.fillStyle = this.config.bgColor;
-      ctx.fillRect(_point.x, _point.y, width, lineHeight);
-      ctx.fillStyle = this.config.color;
-      ctx.fillText(txt, _point.x, baseLine, width);
-      x = _point.x + width;
-      y = _point.y;
+  change(attr: string, val: any) {
+    switch (attr) {
+      case 'size':
+        return this._setSize(val.width, val.height);
+      case 'fontSize':
+        return this._setFontSize(val);
+      case 'lineHeight':
+        return this._setLineHeight(val);
+      default:
+        console.warn(attr, val);
     }
-    this._point = { x, y };
-    this._onCaretMove!(this.point);
-  }
-  
-  resize() {
-    let changed = false;
-    const { elCanvas, config } = this;
-
-    if ((elCanvas?.clientWidth || 0) * this._scale !== elCanvas.width) {
-      elCanvas.width = (elCanvas?.clientWidth || 0) * this._scale;
-      changed = true;
-    }
-    if ((elCanvas?.clientHeight || 0) * this._scale !== elCanvas.height) {
-      elCanvas.height = (elCanvas?.clientHeight || 0) * this._scale;
-      changed = true;
-    }
-    if (!changed) return;
-    this.ctx.font = `${config.fontSize}px ${config.family}`;
-  }
-
-  write(str: string) {
-    const ctx = this.ctx;
-    if (!ctx) return;
-    const list = str.split('\n');
-    list.forEach((txt, idx) => {
-      if (txt) {
-        const payload = { txt, width: ctx.measureText(txt).width, paragraph: 0 };
-        this.draw(payload);
-        this._collector.push({ ...payload, width: payload.width / this._scale });
-      }
-      if (idx < list.length - 1) {
-        const payload = { txt: '\n', width: 0, paragraph: 0 };
-        this.draw(payload);
-        this._collector.push(payload);
-      }
-    });
   }
 }
+
+customElements.define('editor-view', EditorView);

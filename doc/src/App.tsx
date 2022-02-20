@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useRef, useEffect } from 'react';
 import './App.css';
-import Editor from './editor';
+import 'editor';
 
 const Toolbar = lazy(() => import('./toolbar'));
 const Statbar = lazy(() => import('./statbar'));
@@ -17,8 +17,11 @@ function getDPI() {
 function App() {
   const dpi = useRef(getDPI());
   const editorApiRef = useRef<any>(null);
+  const mainRef = useRef<any>(null);
 
   useEffect(() => {
+    editorApiRef.current = document.createElement('editor-view');
+    mainRef.current.appendChild(editorApiRef.current);
     editorApiRef.current.change('size', { width: '210mm', height: '297mm' });
   }, []);
 
@@ -34,8 +37,7 @@ function App() {
           <Toolbar dpi={dpi.current} onChange={handleConfigChange} />
         </Suspense>
       </header>
-      <div className="main">
-        <Editor ref={editorApiRef} />
+      <div className="main" ref={mainRef}>
       </div>
       <Suspense fallback={<div></div>}>
         <Statbar />

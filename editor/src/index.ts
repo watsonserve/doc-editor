@@ -1,2 +1,3 @@
 export * from './collector';
-export * from './editor';
+export * from './core';
+export { default } from './editor';
