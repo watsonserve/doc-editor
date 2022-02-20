@@ -1,7 +1,6 @@
 import React, { useEffect, useImperativeHandle, useMemo, useRef, forwardRef } from 'react';
 import Inputer, { IInputerCtrl } from './inputer';
-import { IPoint, Editor } from './editor';
-import { OfflineSyncer } from './collector';
+import { IPoint, Editor, OfflineSyncer } from 'editor';
 import './editor.scss';
 
 interface IEditorProps {

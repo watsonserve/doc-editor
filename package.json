@@ -1,16 +1,14 @@
 {
-  "name": "editor",
+  "name": "doc-editor",
   "version": "0.1.0",
   "private": true,
-  "dependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
-  },
+  "workspaces": [
+    "doc",
+    "editor"
+  ],
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "yarn workspace doc start",
+    "build": "yarn workspace doc build"
   },
   "eslintConfig": {
     "extends": [
@@ -29,14 +27,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@types/node": "^16.7.13",
-    "@types/react": "^17.0.20",
-    "@types/react-dom": "^17.0.9",
-    "react-scripts": "5.0.0",
-    "sass": "^1.49.4",
-    "typescript": "^4.4.2",
-    "web-vitals": "^2.1.0"
   }
 }

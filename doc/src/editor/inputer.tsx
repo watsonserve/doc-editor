@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from 'react';
-import { IPoint } from './editor';
+import { IPoint } from 'editor';
 import './inputer.scss';
 
 export interface IInputerCtrl {
