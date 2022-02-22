@@ -7,8 +7,9 @@
     "editor"
   ],
   "scripts": {
+    "up": "yarn workspace editor build",
     "start": "yarn workspace doc start",
-    "build": "yarn workspace doc build"
+    "build": "yarn up && yarn workspace doc build"
   },
   "eslintConfig": {
     "extends": [

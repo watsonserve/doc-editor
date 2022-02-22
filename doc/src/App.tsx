@@ -19,10 +19,20 @@ function App() {
   const editorApiRef = useRef<any>(null);
   const mainRef = useRef<any>(null);
 
+  const config = useRef({
+    fontSize: 16,
+    family: 'serif',
+    lineMargin: 1,
+    color: '#333',
+    bgColor: 'transparent',
+    pageSize: { width: '210mm', height: '297mm' }
+  });
+
   useEffect(() => {
     editorApiRef.current = document.createElement('editor-view');
     mainRef.current.appendChild(editorApiRef.current);
-    editorApiRef.current.change('size', { width: '210mm', height: '297mm' });
+    editorApiRef.current.change('size', config.current.pageSize);
+    editorApiRef.current.change('fontSize', config.current.fontSize);
   }, []);
 
   const handleConfigChange = (attr: string, val: any) => {
@@ -34,7 +44,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <Suspense fallback={<div></div>}>
-          <Toolbar dpi={dpi.current} onChange={handleConfigChange} />
+          <Toolbar dpi={dpi.current} config={config.current} onChange={handleConfigChange} />
         </Suspense>
       </header>
       <div className="main" ref={mainRef}>
