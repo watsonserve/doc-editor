@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useRef, useEffect } from 'react';
 import './App.css';
-import 'editor';
+import EditorView from 'editor';
 
 const Toolbar = lazy(() => import('./toolbar'));
 const Statbar = lazy(() => import('./statbar'));
@@ -29,10 +29,15 @@ function App() {
   });
 
   useEffect(() => {
-    editorApiRef.current = document.createElement('editor-view');
+    editorApiRef.current = new EditorView();
     mainRef.current.appendChild(editorApiRef.current);
-    editorApiRef.current.change('size', config.current.pageSize);
+    editorApiRef.current.change('pageSize', config.current.pageSize);
     editorApiRef.current.change('fontSize', config.current.fontSize);
+
+    return () => {
+      editorApiRef.current.destroy();
+      delete editorApiRef.current;
+    };
   }, []);
 
   const handleConfigChange = (attr: string, val: any) => {

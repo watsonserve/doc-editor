@@ -1,21 +1,66 @@
 import { IPoint } from './core';
 
 export interface IInputerCtrl {
-  focusPoint: (p: IPoint) => void;
+  get element(): HTMLDivElement;
+  set onInput(fn: (str: string) => void);
+  focus: (p: IPoint) => void;
 }
 
-export default class CaretInputer extends HTMLElement {
+export const style = `
+  @keyframes flash {
+    0% {
+      opacity: 1;
+    }
+    20% {
+      opacity: 1;
+    }
+    30% {
+      opacity: 0;
+    }
+    70% {
+      opacity: 0;
+    }
+    80% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  .inputer {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .inputer .inputer__caret {
+    width: 1px;
+    height: 50%;
+    animation: flash 1000ms linear infinite;
+    background: #000;
+  }
+
+  .inputer .inputer__cache {
+    width: 1px;
+    height: 1px;
+    transform: rotateX(90deg);
+    font-size: 1px;
+  }
+`;
+
+export class CaretInputer implements IInputerCtrl {
   private readonly selfElement = document.createElement('div');
   // 输入缓存
   private readonly inputElement = document.createElement('div');
-  private readonly elStyle = document.createElement('style');
   // 是否开启输入法
   private compositionRef = false;
+  private _onInput?: (str: string) => void;
 
-  constructor() {
-    super();
-    const shadow = this.attachShadow({ mode: 'closed' });
-    this.selfElement.setAttribute('class', 'inputer');
+  constructor(className = '', fn?: (str: string) => void) {
+    this._onInput = fn;
+    this.selfElement.setAttribute('class', `inputer ${className}`);
     const caret = document.createElement('div');
     caret.setAttribute('class', 'inputer__caret');
     this.inputElement.setAttribute('class', 'inputer__cache');
@@ -24,56 +69,25 @@ export default class CaretInputer extends HTMLElement {
     this.inputElement.setAttribute('suppresscontenteditablewarning', 'suppresscontenteditablewarning');
     this.inputElement.oninput = ev => this._handleInput(ev);
     this.inputElement.onkeydown = ev => this._handleKeyDown(ev);
-    (this.inputElement as any).oncompositionstart = (ev: any) => this._handleComposition(ev, true);
-    (this.inputElement as any).oncompositionend = (ev: any) => this._handleComposition(ev, false);
+    this.inputElement.addEventListener('compositionstart', (ev: any) => this._handleComposition(ev, true));
+    this.inputElement.addEventListener('compositionend', (ev: any) => this._handleComposition(ev, false));
 
     this.selfElement.appendChild(caret);
     this.selfElement.appendChild(this.inputElement);
-    shadow.appendChild(this.elStyle);
-    shadow.appendChild(this.selfElement);
-    this.elStyle.innerHTML = `
-      @keyframes flash {
-        0% {
-          opacity: 1;
-        }
-        20% {
-          opacity: 1;
-        }
-        30% {
-          opacity: 0;
-        }
-        70% {
-          opacity: 0;
-        }
-        80% {
-          opacity: 1;
-        }
-        100% {
-          opacity: 1;
-        }
-      }
-      
-      .inputer {
-        display: flex;
-        height: 100%;
-        flex-direction: column;
-        justify-content: center;
-      }
+  }
 
-      .inputer .inputer__caret {
-        width: 1px;
-        height: 50%;
-        animation: flash 1000ms linear infinite;
-        background: #000;
-      }
+  destroy() {
+    this._onInput = undefined;
+    this.inputElement.remove();
+    this.selfElement.remove();
+  }
 
-      .inputer .inputer__cache {
-        width: 1px;
-        height: 1px;
-        transform: rotateX(90deg);
-        font-size: 1px;
-      }
-    `;
+  public get element() {
+    return this.selfElement;
+  }
+
+  public set onInput(fn: (str: string) => void) {
+    this._onInput = fn;
   }
 
   private _follow(inputType: string, str: string) {
@@ -82,7 +96,7 @@ export default class CaretInputer extends HTMLElement {
         str = '\n';
     }
     console.log(`inputType: ${inputType}, str: ${str}`);
-    this.dispatchEvent(new InputEvent('InputEvent', { data: str }));
+    this._onInput!(str);
     this.inputElement.innerHTML = '';
   }
 
@@ -109,9 +123,11 @@ export default class CaretInputer extends HTMLElement {
     }
   }
 
-  public focus() {
+  public focus(p: IPoint) {
+    const styl = this.selfElement.style;
+    styl.left = `${p.x || 0}px`;
+    styl.top = `${p.y || 0}px`;
+    styl.height = `${p.height || 16}px`;
     this.inputElement.focus();
   }
 }
-
-customElements.define('caret-inputer', CaretInputer);

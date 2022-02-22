@@ -1,4 +1,4 @@
-import CaretInputer from './inputer';
+import { CaretInputer, style } from './inputer';
 import { IPoint, Editor } from './core';
 import { OfflineSyncer } from './collector';
 
@@ -7,7 +7,7 @@ interface IEditorProps {
 
 export default class EditorView extends HTMLElement {
   private elWrapper = document.createElement('div');
-  private elInputer = new CaretInputer();
+  private elInputer = new CaretInputer('editor__inputer');
   private readonly editorRef = new Editor(new OfflineSyncer());
   private readonly elStyle = document.createElement('style');
 
@@ -16,28 +16,20 @@ export default class EditorView extends HTMLElement {
 
     this.elWrapper.setAttribute('class', 'editor');
     this.elWrapper.onclick = ev => this._handleClick(ev);
-    this.elInputer.setAttribute('class', 'editor__inputer');
-    this.elInputer.oninput = (ev: Event) => {
-      const str = (ev as InputEvent).data || '';
-      this.editorRef.write(str);
-    };
+    this.elInputer.onInput = (str: string) => this.editorRef.write(str);
+    this.editorRef.onCaretMove = (p: IPoint) => this.elInputer.focus(p);
 
-    this.editorRef.onCaretMove = (p: IPoint) => {
-      const elSelf = this.elInputer;
-      elSelf.style.left = `${p.x || 0}px`;
-      elSelf.style.top = `${p.y || 0}px`;
-      elSelf.style.height = `${p.height || 16}px`;
-      elSelf.focus();
-    };
     this.editorRef.resize();
     this.editorRef.bgColor = '#f00';
 
     const shadow = this.attachShadow({ mode: 'closed' });
-    this.elWrapper.appendChild(this.elInputer);
+    this.elWrapper.appendChild(this.elInputer.element);
     this.elWrapper.appendChild(this.editorRef.canvas);
     shadow.appendChild(this.elStyle);
     shadow.appendChild(this.elWrapper);
     this.elStyle.innerHTML = `
+      ${style}
+
       .editor {
         display: flex;
         position: relative;
@@ -68,9 +60,12 @@ export default class EditorView extends HTMLElement {
   destroy() {
     console.warn('on editor unmount');
     this.editorRef.destroy();
+    this.elInputer.destroy();
+    this.elStyle.remove();
+    this.elWrapper.remove();
   }
 
-  private _setSize(width: string, height: string) {
+  private _setPageSize(width: string, height: string) {
     this.elWrapper.style.width = width;
     this.elWrapper.style.height = height;
     this.editorRef.resize();
@@ -92,8 +87,8 @@ export default class EditorView extends HTMLElement {
 
   change(attr: string, val: any) {
     switch (attr) {
-      case 'size':
-        return this._setSize(val.width, val.height);
+      case 'pageSize':
+        return this._setPageSize(val.width, val.height);
       case 'fontSize':
         return this._setFontSize(val);
       case 'lineHeight':
