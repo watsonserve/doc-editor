@@ -4,16 +4,6 @@ export interface ISyncer extends EventEmitter {
   send: (data: any[])=> void;
 }
 
-export class OfflineSyncer extends EventEmitter implements ISyncer {
-  constructor() {
-    super();
-    (window as any).emitRecv = (data: any) => this.emit('recv', data);
-  }
-  send(data: any[]) {
-    console.log(data);
-  }
-}
-
 export class Collector<T extends Object> {
   private cache: T[] = [];
   private todoTimer = 0;
@@ -24,8 +14,8 @@ export class Collector<T extends Object> {
     this._onRecv && this._onRecv(...args);
   };
 
-  constructor(io?: ISyncer) {
-    this.syncLayout = io || new OfflineSyncer();
+  constructor(io: ISyncer) {
+    this.syncLayout = io;
   }
 
   destroy() {

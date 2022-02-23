@@ -1,9 +1,10 @@
 import React, { Suspense, lazy, useRef, useEffect } from 'react';
 import './App.css';
 import EditorView from 'editor';
+import { Syncer } from './helper/syncer';
 
-const Toolbar = lazy(() => import('./toolbar'));
-const Statbar = lazy(() => import('./statbar'));
+const Toolbar = lazy(() => import('./components/toolbar'));
+const Statbar = lazy(() => import('./components/statbar'));
 
 function getDPI() {
   const foo = document.createElement('div');
@@ -29,7 +30,7 @@ function App() {
   });
 
   useEffect(() => {
-    editorApiRef.current = new EditorView();
+    editorApiRef.current = new EditorView(new Syncer());
     mainRef.current.appendChild(editorApiRef.current);
     editorApiRef.current.change('pageSize', config.current.pageSize);
     editorApiRef.current.change('fontSize', config.current.fontSize);

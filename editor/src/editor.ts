@@ -1,18 +1,16 @@
 import { CaretInputer, style } from './inputer';
 import { IPoint, Editor } from './core';
-import { OfflineSyncer } from './collector';
-
-interface IEditorProps {
-}
+import { ISyncer } from './collector';
 
 export default class EditorView extends HTMLElement {
   private elWrapper = document.createElement('div');
   private elInputer = new CaretInputer('editor__inputer');
-  private readonly editorRef = new Editor(new OfflineSyncer());
+  private readonly editorRef;
   private readonly elStyle = document.createElement('style');
 
-  constructor() {
+  constructor(syncer: ISyncer) {
     super();
+    this.editorRef = new Editor(syncer);
 
     this.elWrapper.setAttribute('class', 'editor');
     this.elWrapper.onclick = ev => this._handleClick(ev);
