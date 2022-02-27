@@ -37,7 +37,10 @@ export abstract class Connection {
     // a msg sent by caller and need a response
     if (resp.msgSN) {
       const waiter = this.__waiting.get(resp.msgSN);
-      waiter && waiter(resp);
+      if (waiter) {
+        this.__waiting.delete(resp.msgSN);
+        waiter(resp);
+      }
       return;
     }
     // a broadcast
