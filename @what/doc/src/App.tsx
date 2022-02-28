@@ -1,6 +1,6 @@
 import React, { Suspense, lazy, useRef, useEffect } from 'react';
 import './App.css';
-import EditorView from 'editor';
+import EditorView from '@what/editor';
 import { Syncer } from './helper/syncer';
 
 const Toolbar = lazy(() => import('./components/toolbar'));

@@ -5,11 +5,6 @@ import { IConnectProps, Heartbeat } from './heartbeat';
 export { Method, ContentType, request } from './request';
 
 interface IChannelProps extends IConnectProps {
-  wsUrl: string;
-  origin: string;
-  retry: number;
-  timeout: number;
-  heartbeatTime: number;
 }
 
 interface IFunction {
