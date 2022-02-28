@@ -4,10 +4,10 @@
 node_modules
 /.pnp
 .pnp.js
-connector/dist
-editor/dist
+@what/connector/dist
+@what/editor/dist
 # production
-doc/build
+@what/doc/build
 
 
 # testing
