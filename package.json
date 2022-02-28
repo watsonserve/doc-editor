@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
+    "connector",
     "doc",
     "editor"
   ],
   "scripts": {
-    "up": "yarn workspace editor build",
+    "upc": "yarn workspace connector build",
+    "upe": "yarn workspace editor build",
     "start": "yarn workspace doc start",
     "build": "yarn up && yarn workspace doc build"
   },

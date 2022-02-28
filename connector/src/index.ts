@@ -2,6 +2,8 @@ import EventEmitter from 'events';
 import { IMsg } from './connect';
 import { IConnectProps, Heartbeat } from './heartbeat';
 
+export { Method, ContentType, request } from './request';
+
 interface IChannelProps extends IConnectProps {
   wsUrl: string;
   origin: string;
@@ -14,7 +16,10 @@ interface IFunction {
   (...args: any[]): void;
 }
 
-export default class Channel extends Heartbeat {
+export class Channel extends Heartbeat {
+  protected get beatData(): any {
+    throw new Error('Method not implemented.');
+  }
   private readonly eventor = new EventEmitter();
 
   constructor(props: IChannelProps) {

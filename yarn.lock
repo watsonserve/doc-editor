@@ -2937,6 +2937,11 @@ connect-history-api-fallback@^1.6.0:
   resolved "https://registry.npmmirror.com/connect-history-api-fallback/-/connect-history-api-fallback-1.6.0.tgz#8b32089359308d111115d81cad3fceab888f97bc"
   integrity sha512-e54B99q/OUoH64zYYRf3HBP5z24G38h5D3qXu23JGRoigpX5Ss4r9ZnDk3g0Z8uQC2x2lPaJ+UlWBc1ZWBWdLg==
 
+connection@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.npmmirror.com/connection/-/connection-0.0.0.tgz#6fc52ee4a7ab438b1b0f33b16714bb7565e676ce"
+  integrity sha512-Esh0khHWMkIYi1VQ5Orw33/5iAHjqGGkgiFDJ7gooXommKS8mLZ1knBuNy7uUC4ugSffLem/mhFYtK4oJzjIyA==
+
 content-disposition@0.5.4:
   version "0.5.4"
   resolved "https://registry.npmmirror.com/content-disposition/-/content-disposition-0.5.4.tgz#8b82b4efac82512a02bb0b1dcec9d2c5e8eb5bfe"
@@ -3507,6 +3512,11 @@ duplexer@^0.1.2:
   version "0.1.2"
   resolved "https://registry.npmmirror.com/duplexer/-/duplexer-0.1.2.tgz#3abe43aef3835f8ae077d136ddce0f276b0400e6"
   integrity sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==
+
+editor@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.npmmirror.com/editor/-/editor-0.0.0.tgz#83fe7d13e808125b51a92db935fed672a5ae6386"
+  integrity sha512-o9JXkKnp0ycu0lbOb9PRH0APmx3F2x24PCImJ6ubjTtOkVIQ1CCV2f+blaEzOAJZ46qOLWY/MVLyM2gR16JBbg==
 
 ee-first@1.1.1:
   version "1.1.1"

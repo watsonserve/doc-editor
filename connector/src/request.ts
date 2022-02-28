@@ -7,7 +7,7 @@ export enum Method {
   HEAD = 'HEAD'
 }
 
-enum ContentType {
+export enum ContentType {
   URLENCODE = 'application/x-www-form-urlencoded',
   FORMDATA = 'multipart/form-data',
   JSON = 'application/json',
