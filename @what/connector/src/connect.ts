@@ -35,20 +35,65 @@ function randomUUID() {
   }, '');
 }
 
+function connSocket(url: string) {
+  return new Promise<WebSocket>((resolve, reject) => {
+    try {
+      const ws = new WebSocket(url);
+      ws.onopen = () => resolve(ws);
+      ws.onerror = () => reject(new Error('connect falied'));
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+enum EnConnStat {
+  UNINIT,
+  CLOSED,
+  DOING,
+  OK
+}
+
+export interface IConnectionProps {
+  langUrl: string;
+  shortUrl: string;
+  weakThresHold: number;
+  connRetryTime: number;
+  connRetryInterval: number;
+}
+
 export abstract class Connection {
-  private shortUrl = '';
+  private __weakThresHold: number;
+  private __shortOkCnt = 0;
+  private __connRetryTime: number;
+  private __connRetryInterval: number;
+  private __langUrl = '';
+  private __shortUrl = '';
   private __ws: WebSocket | null = null;
+  private __connStat = EnConnStat.UNINIT;
   private readonly __waiting = new Map<string, IWaiting>();
 
   protected abstract _encode(data: any): ArrayBuffer;
   protected abstract _decode(data: ArrayBuffer): any;
   protected abstract _onRecv(data: IMsg): void;
-  protected abstract _onError(err: Event): void;
-  protected abstract _onClose(): void;
 
-  constructor(url: string) {
-    this.shortUrl = url;
+  constructor(props: IConnectionProps) {
+    this.__weakThresHold = props.weakThresHold;
+    this.__langUrl = props.langUrl;
+    this.__shortUrl = props.shortUrl;
+    this.__connRetryTime = props.connRetryTime;
+    this.__connRetryInterval = props.connRetryInterval;
   }
+  
+  private _onError = (err: Event) => {
+    console.error(err);
+  };
+
+  private _onClose = async () => {
+    this.__connStat = EnConnStat.CLOSED;
+    await sleep(10);
+    this._connect();
+  };
 
   private __onRecv = (ev: MessageEvent<ArrayBuffer>) => {
     const { msgSN, ...resp } = this._decode(ev.data) as _IMsg;
@@ -65,23 +110,21 @@ export abstract class Connection {
     this._onRecv(resp);
   }
 
-  protected async _connect(wsUrl: string) {
-    this.__ws = await new Promise((resolve, reject) => {
-      try {
-        const ws = new WebSocket(wsUrl);
-        ws.onopen = () => resolve(ws);
-        ws.onerror = () => reject(new Error('connect falied'));
-      } catch (err) {
-        reject(err);
-      }
-    });
-    this.__ws!.onerror = this._onError;
-    this.__ws!.onclose = this._onClose;
-    this.__ws!.onmessage = this.__onRecv;
-  }
-
-  get url() {
-    return this.__ws?.url;
+  protected async _connect(retry = this.__connRetryTime) {
+    if (retry < 0) {
+      this.__connStat = EnConnStat.CLOSED;
+      return;
+    }
+    this.__connStat = EnConnStat.DOING;
+    try {
+      this.__ws = await connSocket(this.__langUrl);
+      this.__ws!.onerror = this._onError;
+      this.__ws!.onclose = this._onClose;
+      this.__ws!.onmessage = this.__onRecv;
+      this.__connStat = EnConnStat.OK;
+    } catch (err) {
+      sleep(this.__connRetryInterval).then(() => this._connect(retry - 1));
+    }
   }
 
   get canUse() {
@@ -89,6 +132,7 @@ export abstract class Connection {
   }
 
   protected _close() {
+    this.__connStat = EnConnStat.UNINIT;
     if (!this.__ws) return;
     this.__ws.onerror = null;
     this.__ws.onclose = null;
@@ -131,16 +175,28 @@ export abstract class Connection {
    * @returns 应答结果
    */
   private async __pingpong(data: IMsg, timeout = 5000) {
-    const resp = await base_request({
-      url: this.shortUrl,
-      method: Method.POST,
-      timeout,
-      headers: {
-        'Content-Type': `${ContentType.JSON}; charset=utf-8`
-      },
-      data: this._encode(data)
-    });
-    return this._decode(resp.body);
+    try {
+      const resp = await base_request({
+        url: this.__shortUrl,
+        method: Method.POST,
+        timeout,
+        headers: {
+          'Content-Type': `${ContentType.JSON}; charset=utf-8`
+        },
+        data: this._encode(data)
+      });
+
+      // 长链接关闭状态下，连续成功到弱网阈值次数后，重新尝试创建长链接
+      if (this.__connStat === EnConnStat.CLOSED) {
+        this.__shortOkCnt++;
+        this.__weakThresHold < this.__shortOkCnt && this._connect();
+      }
+
+      return this._decode(resp.body);
+    } catch (err) {
+      this.__connStat === EnConnStat.CLOSED && (this.__shortOkCnt = 0);
+      return Promise.reject(err);
+    }
   }
 
   /**

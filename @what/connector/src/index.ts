@@ -12,24 +12,25 @@ interface IFunction {
 }
 
 export class Channel extends Heartbeat {
-  protected get beatData(): any {
-    throw new Error('Method not implemented.');
-  }
   private readonly eventor = new EventEmitter();
 
   constructor(props: IChannelProps) {
     super(props);
   }
 
-  handleRecv(data: IMsg) {
+  protected _onRecv(data: IMsg): void {
     this.eventor.emit(data.msgUser || 'broadcast', data);
   }
 
-  register(name: string, fn: IFunction) {
+  protected get beatData(): any {
+    return {};
+  }
+
+  registerListener(name: string, fn: IFunction) {
     this.eventor.addListener(name, fn);
   }
 
-  removeEventListener(name: string, fn: IFunction) {
+  removeListener(name: string, fn: IFunction) {
     this.eventor.removeListener(name, fn);
   }
 }

@@ -1,12 +1,10 @@
-import { IMsg, Connection } from './connect';
+import { IMsg, IConnectionProps, Connection } from './connect';
 
-export interface IConnectProps {
-  longUrl: string;
-  shortUrl: string;
+export interface IConnectProps extends IConnectionProps {
   beatTime: number;
   intervalTime: number;
-  retryTime: number;
-  retryinterval: number;
+  beatRetryTime: number;
+  beatRetryInterval: number;
 }
 
 export abstract class Heartbeat extends Connection {
@@ -14,13 +12,12 @@ export abstract class Heartbeat extends Connection {
   private initStep = 0;
   protected opts: IConnectProps;
 
-  protected abstract handleRecv(data: IMsg): void;
   protected abstract get beatData(): any;
 
   constructor(opts: IConnectProps) {
-    super(opts.shortUrl);
+    super(opts);
     this.opts = { ...opts };
-    this._connect(opts.longUrl).catch().then(() => {
+    this._connect().then(() => {
       this.initStep |= 1;
       this._beat();
     });
@@ -31,6 +28,10 @@ export abstract class Heartbeat extends Connection {
     this._destroy();
   }
 
+  private _handleBeat(resp: IMsg) {
+    // @TODO
+  }
+
   /**
    * 发送一个心跳，内含超时重试、消息和错误处理
    * @param timeout 超时时间
@@ -39,9 +40,9 @@ export abstract class Heartbeat extends Connection {
     this._post(
       { msgUser: 'heartbeat', data: this.beatData },
       timeout,
-      this.opts.retryTime,
-      this.opts.retryinterval
-    ).then(resp => this._onRecv(resp), err => {
+      this.opts.beatRetryTime,
+      this.opts.beatRetryInterval
+    ).then(resp => this._handleBeat(resp), err => {
       // @TODO log.error(err);
     });
   }
@@ -78,22 +79,5 @@ export abstract class Heartbeat extends Connection {
 
   protected _decode(data: ArrayBuffer): IMsg {
     return JSON.parse(new TextDecoder('utf-8').decode(data)) as IMsg;
-  }
-
-  protected _onRecv(data: IMsg): void {
-    // 心跳包
-    if ('heartbeat' === data.msgUser) {
-      return;
-    }
-    // 广播包
-    this.handleRecv(data);
-  }
-
-  protected _onError(err: Event): void {
-    throw new Error("Method not implemented.");
-  }
-
-  protected _onClose(): void {
-
   }
 }

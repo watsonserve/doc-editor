@@ -2,13 +2,12 @@
 
 # dependencies
 node_modules
+dist
+# production
+build
+
 /.pnp
 .pnp.js
-@what/connector/dist
-@what/editor/dist
-# production
-@what/doc/build
-
 
 # testing
 /coverage
