@@ -1,6 +1,6 @@
 {
-  "name": "connector",
-  "version": "0.0.1",
+  "name": "@what/editor",
+  "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
   "scripts": {

@@ -1,5 +1,5 @@
 {
-  "name": "doc",
+  "name": "@what/doc",
   "version": "0.1.0",
   "private": true,
   "dependencies": {

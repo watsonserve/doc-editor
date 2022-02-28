@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "connector",
-    "doc",
-    "editor"
+    "@what/connector",
+    "@what/doc",
+    "@what/editor"
   ],
   "scripts": {
-    "upc": "yarn workspace connector build",
-    "upe": "yarn workspace editor build",
-    "start": "yarn workspace doc start",
-    "build": "yarn up && yarn workspace doc build"
+    "upc": "yarn workspace @what/connector build",
+    "upe": "yarn workspace @what/editor build",
+    "start": "yarn workspace @what/doc start",
+    "build": "yarn up && yarn workspace @what/doc build"
   },
   "eslintConfig": {
     "extends": [
