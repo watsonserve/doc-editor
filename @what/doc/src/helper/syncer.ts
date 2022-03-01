@@ -8,8 +8,11 @@ export class Syncer extends EventEmitter implements ISyncer {
     shortUrl: '',
     beatTime: 30000,
     intervalTime: 10000,
-    retryTime: 3,
-    retryinterval: 0,
+    beatRetryTime: 3,
+    beatRetryInterval: 5000,
+    weakThresHold: 3,
+    connRetryTime: 3,
+    connRetryInterval: 1000,
   });
   constructor() {
     super();

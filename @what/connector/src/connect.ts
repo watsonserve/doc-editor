@@ -55,7 +55,7 @@ enum EnConnStat {
 }
 
 export interface IConnectionProps {
-  langUrl: string;
+  longUrl: string;
   shortUrl: string;
   weakThresHold: number;
   connRetryTime: number;
@@ -63,6 +63,11 @@ export interface IConnectionProps {
 }
 
 export abstract class Connection {
+  protected abstract _encode(data: _IMsg): ArrayBuffer;
+  protected abstract _decode(data: ArrayBuffer): _IMsg;
+  protected abstract _onRecv(data: IMsg): void;
+
+  private readonly __waiting = new Map<string, IWaiting>();
   private __weakThresHold: number;
   private __shortOkCnt = 0;
   private __connRetryTime: number;
@@ -71,25 +76,12 @@ export abstract class Connection {
   private __shortUrl = '';
   private __ws: WebSocket | null = null;
   private __connStat = EnConnStat.UNINIT;
-  private readonly __waiting = new Map<string, IWaiting>();
-
-  protected abstract _encode(data: any): ArrayBuffer;
-  protected abstract _decode(data: ArrayBuffer): any;
-  protected abstract _onRecv(data: IMsg): void;
-
-  constructor(props: IConnectionProps) {
-    this.__weakThresHold = props.weakThresHold;
-    this.__langUrl = props.langUrl;
-    this.__shortUrl = props.shortUrl;
-    this.__connRetryTime = props.connRetryTime;
-    this.__connRetryInterval = props.connRetryInterval;
-  }
   
-  private _onError = (err: Event) => {
+  private __onError = (err: Event) => {
     console.error(err);
   };
 
-  private _onClose = async () => {
+  private __onClose = async () => {
     this.__connStat = EnConnStat.CLOSED;
     await sleep(10);
     this._connect();
@@ -110,43 +102,7 @@ export abstract class Connection {
     this._onRecv(resp);
   }
 
-  protected async _connect(retry = this.__connRetryTime) {
-    if (retry < 0) {
-      this.__connStat = EnConnStat.CLOSED;
-      return;
-    }
-    this.__connStat = EnConnStat.DOING;
-    try {
-      this.__ws = await connSocket(this.__langUrl);
-      this.__ws!.onerror = this._onError;
-      this.__ws!.onclose = this._onClose;
-      this.__ws!.onmessage = this.__onRecv;
-      this.__connStat = EnConnStat.OK;
-    } catch (err) {
-      sleep(this.__connRetryInterval).then(() => this._connect(retry - 1));
-    }
-  }
-
-  get canUse() {
-    return WebSocket.OPEN === this.__ws?.readyState;
-  }
-
-  protected _close() {
-    this.__connStat = EnConnStat.UNINIT;
-    if (!this.__ws) return;
-    this.__ws.onerror = null;
-    this.__ws.onclose = null;
-    this.__ws.onmessage = null;
-    this.__ws.close();
-  }
-
-  protected _destroy() {
-    this._close();
-    this.__ws = null;
-    this.__waiting.clear();
-  }
-
-  protected _send(data: IMsg, timeout = 5000): Promise<IMsg | undefined> {
+  private __send(data: IMsg, timeout = 5000): Promise<IMsg | undefined> {
     if (!this.canUse) return Promise.reject(new Error('not open'));
 
     if (timeout < 1) {
@@ -209,12 +165,56 @@ export abstract class Connection {
    */
   protected async _post(data: IMsg, timeout = 5000, retry = 3, retryInterval = 0, short = false): Promise<any | undefined> {
     try {
-      return await this.canUse && !short ? this._send(data, timeout) : this.__pingpong(data, timeout);
+      return await this.canUse && !short ? this.__send(data, timeout) : this.__pingpong(data, timeout);
     } catch (err) {
       if (retry < 1) return Promise.reject(err);
     }
     await sleep(retryInterval);
     return this._post(data, timeout, retry - 1, retryInterval, true);
+  }
+
+  protected async _connect(retry = this.__connRetryTime) {
+    if (retry < 0) {
+      this.__connStat = EnConnStat.CLOSED;
+      return;
+    }
+    this.__connStat = EnConnStat.DOING;
+    try {
+      this.__ws = await connSocket(this.__langUrl);
+      this.__ws!.onerror = this.__onError;
+      this.__ws!.onclose = this.__onClose;
+      this.__ws!.onmessage = this.__onRecv;
+      this.__connStat = EnConnStat.OK;
+    } catch (err) {
+      sleep(this.__connRetryInterval).then(() => this._connect(retry - 1));
+    }
+  }
+
+  protected _close() {
+    this.__connStat = EnConnStat.UNINIT;
+    if (!this.__ws) return;
+    this.__ws.onerror = null;
+    this.__ws.onclose = null;
+    this.__ws.onmessage = null;
+    this.__ws.close();
+  }
+
+  protected _destroy() {
+    this._close();
+    this.__ws = null;
+    this.__waiting.clear();
+  }
+
+  constructor(props: IConnectionProps) {
+    this.__weakThresHold = props.weakThresHold;
+    this.__langUrl = props.longUrl;
+    this.__shortUrl = props.shortUrl;
+    this.__connRetryTime = props.connRetryTime;
+    this.__connRetryInterval = props.connRetryInterval;
+  }
+
+  get canUse() {
+    return WebSocket.OPEN === this.__ws?.readyState;
   }
 
   /**
