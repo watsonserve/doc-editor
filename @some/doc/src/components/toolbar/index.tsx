@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useRef } from 'react';
 import { IToolProps } from './types';
-import TabBar from '../tabbar';
+import { TabBar } from '@some/ui';
 import FileTools from './file-tools';
 import EditTools from './edit-tools';
 import InsertTools from './insert-tools';

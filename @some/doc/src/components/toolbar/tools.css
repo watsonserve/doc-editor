@@ -88,3 +88,16 @@ a.edit-tools-btn {
 
 .edit-tools__font-upper {
 }
+
+.edit-tools__font-lev {
+  margin-right: 8px;
+  width: 4em;
+}
+
+.edit-tools__font-lev ul.some-menu {
+  position: fixed;
+  top: 60px;
+  left: 134px;
+  z-index: 10;
+  width: 6em;
+}

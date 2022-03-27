@@ -7996,6 +7996,11 @@ stackframe@^1.1.1:
   resolved "https://registry.npmmirror.com/statuses/-/statuses-1.5.0.tgz#161c7dac177659fd9811f43771fa99381478628c"
   integrity sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==
 
+std@0.1.22:
+  version "0.1.22"
+  resolved "https://registry.npmmirror.com/std/-/std-0.1.22.tgz#60e09386d746afcc25c328c935307d5dc6261dd0"
+  integrity sha512-9/FVOX4zTJjfhtSPj4V2djwwehDeCdUMZoaK/WzX6z1frjB6dKxmjA/r99JFgn2+bexG+ZeuTQ4z0c5xP7mPiA==
+
 string-hash@^1.1.1:
   version "1.1.3"
   resolved "https://registry.npmmirror.com/string-hash/-/string-hash-1.1.3.tgz#e8aafc0ac1855b4666929ed7dd1275df5d6c811b"
@@ -8465,6 +8470,13 @@ typescript@^4.4.2:
   version "4.5.5"
   resolved "https://registry.npmmirror.com/typescript/-/typescript-4.5.5.tgz#d8c953832d28924a9e3d37c73d729c846c5896f3"
   integrity sha512-TCTIul70LyWe6IJWT8QSYeA54WQe8EjQFU4wY52Fasj5UKx88LNYKCgBEHcOMOrFF1rKGbD8v/xcNWVUq9SymA==
+
+ui@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.npmmirror.com/ui/-/ui-0.0.0.tgz#d499d3182077b43b91fd4d855e71c0a0617c83ae"
+  integrity sha512-4SNyA7f7p3Humu36+yRJEcVq9XY8z/ivPA4p5SHczgjiwMT+bbyuAaB4Ba7rVKidVzb5UW7Whk8nKhVYwBQrLA==
+  dependencies:
+    std "0.1.22"
 
 unbox-primitive@^1.0.1:
   version "1.0.1"

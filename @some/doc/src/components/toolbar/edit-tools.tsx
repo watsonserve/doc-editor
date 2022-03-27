@@ -1,11 +1,21 @@
-import React from 'react';
+import { useState } from 'react';
 import { IToolProps } from './types';
 import ToolBlk from './tool-blk';
+import { Selector } from '@some/ui';
 
-const fontFamilyList = ['标题', '正文'];
+const fontLevList = [
+  {name: 'h1', title: '标题1'},
+  {name: 'h2', title: '标题2'},
+  {name: 'h3', title: '标题3'},
+  {name: 'h4', title: '标题4'},
+  {name: 'h5', title: '标题5'},
+  {name: 'h6', title: '标题6'},
+  {name: 'p', title: '正文'},
+];
 const fontSizeList = [10, 10.5, 11, 11.5, 12, 16];
 
 function FontTool(props: IToolProps) {
+  const [fontLev, setFontLev] = useState('h1');
   const fontFamilyChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
     props.onChange('fontFamily', ev.target.value);
   };
@@ -21,11 +31,7 @@ function FontTool(props: IToolProps) {
   return (
     <ToolBlk title="字体">
       <div className="edit-tools-btns">
-        <select onChange={fontFamilyChange}>
-        {
-          fontFamilyList.map(x => (<option value={x} key={x}>{x}</option>))
-        }
-        </select>
+        <Selector className="edit-tools__font-lev" options={fontLevList} value={fontLev} onInput={setFontLev} />
         <select onChange={fontSizeChange}>
         {
           fontSizeList.map(x => (<option value={x} key={x}>{x}pt</option>))
