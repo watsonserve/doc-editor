@@ -1,0 +1,34 @@
+.some-tab-bar {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  width: 100%;
+  min-height: 128px;
+  max-height: 128px;
+  height: 128px;
+  overflow: hidden;
+}
+
+ul.some-tab-bar__titles {
+  display: flex;
+  padding: 0 8px;
+  flex: 32px 0 0;
+  text-align: center;
+}
+
+li.some-title-item {
+  width: 60px;
+  height: 28px;
+  font-size: 14px;
+  line-height: 28px;
+  cursor: pointer;
+}
+
+span.some-active-cursor {
+  display: block;
+  position: absolute;
+  top: 28px;
+  width: 28px;
+  height: 3px;
+  background-color: var(--active-cursor-color);
+}

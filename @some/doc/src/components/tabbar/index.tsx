@@ -12,7 +12,7 @@ import
 } from 'react';
 import './tabbar.css';
 
-interface ITab {
+interface INameTitle {
   name: string;
   title: string;
 }
@@ -21,7 +21,7 @@ interface ITabBarProps {
   children: string | number | boolean | {} | null | undefined
     | ReactElement<any, string | JSXElementConstructor<any>> | ReactNodeArray | ReactPortal;
   active: string;
-  list: ITab[];
+  list: INameTitle[];
   onClick(name:string): void;
 }
 

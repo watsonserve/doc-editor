@@ -1,0 +1,24 @@
+.some-selector {
+  position: relative;
+}
+
+.some-selector__title {
+  display: block;
+  border-radius: var(--radius);
+  padding: 0 8px;
+  height: 24px;
+  font-size: 14px;
+  line-height: 24px;
+  background-color: #555;
+  cursor: pointer;
+}
+
+.some-selector__title:hover {
+  background-color: #444;
+}
+
+.some-selector .some-menu {
+  position: absolute;
+  left: 0;
+  top: 100%;
+}

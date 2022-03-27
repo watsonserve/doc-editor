@@ -1,0 +1,24 @@
+ul, ol, dl, dd {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  cursor: pointer;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+:root {
+  --primary-bg-color: #282c34;
+  --primary-font-color: #fff;
+  --active-cursor-color: #165bbb;
+  --tool-blcok-vr-color: #585755;
+  --menu-bg-color: #282c34;
+  --menu-shadow-color: rgba(112, 112, 112, 0.25);
+  --radius: 4px;
+}

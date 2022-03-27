@@ -3,15 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "@what/connector",
-    "@what/doc",
-    "@what/editor"
+    "@some/connector",
+    "@some/doc",
+    "@some/editor",
+    "@some/ui"
   ],
   "scripts": {
-    "upc": "yarn workspace @what/connector build",
-    "upe": "yarn workspace @what/editor build",
-    "start": "yarn workspace @what/doc start",
-    "build": "yarn up && yarn workspace @what/doc build"
+    "upc": "yarn workspace @some/connector build",
+    "upe": "yarn workspace @some/editor build",
+    "upu": "yarn workspace @some/ui build",
+    "start": "yarn workspace @some/doc start",
+    "build": "yarn up && yarn workspace @some/doc build"
   },
   "eslintConfig": {
     "extends": [
