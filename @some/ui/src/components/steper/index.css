@@ -41,6 +41,6 @@
   z-index: 10;
 }
 
-.some-steper .some-menu.hide:not(:hover) {
+.some-steper .some-menu.some-hide:not(:hover) {
   display: none;
 }

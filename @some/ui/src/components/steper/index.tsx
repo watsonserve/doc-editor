@@ -94,7 +94,7 @@ export default function(props: ISteperProps) {
       >+</span>
 
       {showOpts && <Menu
-        className={classify({ hide: showOpts === 1 })}
+        className={classify({ 'some-hide': showOpts === 1 })}
         tree={options}
         style={getPosition(selfRef.current!)}
         onClick={handleCheck}
