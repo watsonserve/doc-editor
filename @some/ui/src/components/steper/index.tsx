@@ -7,8 +7,9 @@ import './index.css';
 
 export default function(props: ISteperProps) {
   const [num, setNum] = useState(props.value.toString());
-  const [showOpts, setShowOpts] = useState(false);
+  const [showOpts, setShowOpts] = useState(0);
   const selfRef = useRef(null);
+  const optTimer = useRef(0);
 
   useEffect(() => {
     setNum(numValidate(props.value, props.max, props.min).toString());
@@ -24,13 +25,23 @@ export default function(props: ISteperProps) {
     ev.stopPropagation();
     ev.preventDefault();
 
-    let _n = props.value;
+    let _n: number;
     if (num.startsWith('0x') || num.startsWith('0X')) {
       _n = parseInt(num, 16);
     } else {
       _n = parseFloat(num);
     }
-    _emitInput(_n);
+    if (_n !== props.value) {
+      _emitInput(_n);
+    }
+
+    setShowOpts(1);
+
+    optTimer.current = window.setTimeout(() => {
+      if (optTimer.current) clearTimeout(optTimer.current);
+      optTimer.current = 0;
+      setShowOpts(0);
+    }, 1000);
   };
 
   const handleInput = (ev: React.FormEvent<HTMLInputElement>) => {
@@ -49,7 +60,13 @@ export default function(props: ISteperProps) {
     ev.stopPropagation();
     ev.preventDefault();
 
-    setShowOpts(true);
+    if (optTimer.current) clearTimeout(optTimer.current);
+    setShowOpts(2);
+  };
+
+  const handleCheck = (dist: INameTitle<number>) => {
+    _emitInput(dist.name);
+    setShowOpts(0);
   };
 
   const { getPosition, options } = useDownOptions(props.value, props.options);
@@ -77,9 +94,10 @@ export default function(props: ISteperProps) {
       >+</span>
 
       {showOpts && <Menu
+        className={classify({ hide: showOpts === 1 })}
         tree={options}
         style={getPosition(selfRef.current!)}
-        onClick={(dist: INameTitle<number>) => {props.onInput(dist.name); setShowOpts(false);}}
+        onClick={handleCheck}
       />}
     </div>
   );
