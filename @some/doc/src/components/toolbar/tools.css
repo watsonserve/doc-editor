@@ -86,18 +86,11 @@ a.edit-tools-btn {
   font-style: italic;
 }
 
-.edit-tools__font-upper {
-}
-
-.edit-tools__font-lev {
+.some-selector {
   margin-right: 8px;
   width: 4em;
 }
 
-.edit-tools__font-lev ul.some-menu {
-  position: fixed;
-  top: 60px;
-  left: 134px;
-  z-index: 10;
+.some-selector ul.some-menu {
   width: 6em;
 }

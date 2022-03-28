@@ -1,7 +1,7 @@
 import { ReactElement, JSXElementConstructor, ReactPortal } from 'react';
 
-export interface INameTitle {
-  name: string;
+export interface INameTitle<T = string> {
+  name: T;
   title: string;
 }
 
@@ -18,25 +18,26 @@ export interface ITabBarProps {
   onClick(name: string): void;
 }
 
-export interface IMenuTree extends INameTitle {
+export interface IMenuTree<T> extends INameTitle<T> {
   className?: string;
   Icon?: () => JSX.Element;
   tip?: string;
   checkbox?: boolean;
   active?: boolean;
   disabled?: boolean;
-  children?: (IMenuTree | null)[];
+  children?: (IMenuTree<T> | null)[];
 }
 
-export interface IMenuProps {
+export interface IMenuProps<T = string> {
   className?: string;
-  tree: (IMenuTree | null)[];
-  onClick(dist: IMenuTree): void;
+  style?: any;
+  tree: (IMenuTree<T> | null)[];
+  onClick(dist: IMenuTree<T>): void;
 }
 
-export interface ISelectorProps {
+export interface ISelectorProps<T = string> {
   className?: string;
-  value: string;
-  options: INameTitle[];
-  onInput(v: string): void;
+  value: T;
+  options: INameTitle<T>[];
+  onInput(v: T): void;
 }

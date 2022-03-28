@@ -18,7 +18,6 @@
 }
 
 .some-selector .some-menu {
-  position: absolute;
-  left: 0;
-  top: 100%;
+  position: fixed;
+  z-index: 10;
 }

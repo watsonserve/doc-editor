@@ -21,3 +21,7 @@ li.some-menu__item {
 li.some-menu__item:hover {
   background-color: #444;
 }
+
+li.some-menu__item.active {
+  background-color: #555;
+}

@@ -3,7 +3,7 @@ import { IMenuTree, IMenuProps } from '../../types';
 import { classify } from '../../helper';
 import './index.css';
 
-function MenuItem(props: IMenuTree & { onClick(): void }) {
+function MenuItem<T>(props: IMenuTree<T> & { onClick(): void }) {
   const { title, className, Icon, tip, checkbox, active, disabled, onClick } = props;
 
   return useMemo(() => {
@@ -33,7 +33,7 @@ function MenuItem(props: IMenuTree & { onClick(): void }) {
   }, [className, checkbox, active, disabled, title, tip, Icon, onClick]);
 }
 
-export default function(props: IMenuProps) {
+export default function<T>(props: IMenuProps<T>) {
   const handleClick = useCallback((dist) => {
     if (dist.children) {
       // @TODO
@@ -46,13 +46,13 @@ export default function(props: IMenuProps) {
     () => props.tree.map(item =>
       !item
       ? <hr/>
-      : <MenuItem { ...item} key={item.name} onClick={() => handleClick(item)} />
+      : <MenuItem { ...item} key={item.name as any} onClick={() => handleClick(item)} />
     ),
     [...props.tree, handleClick]
   );
 
   return useMemo(() => (
-    <ul className={classify(['some-menu', props.className])}>
+    <ul className={classify(['some-menu', props.className])} style={props.style}>
       {list}
-    </ul>), [props.className, list]);
+    </ul>), [props.className, props.style, list]);
 }
