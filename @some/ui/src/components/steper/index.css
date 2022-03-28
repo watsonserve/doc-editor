@@ -35,3 +35,8 @@
   background-color: var(--form-bg-color);
   line-height: 24px;
 }
+
+.some-steper .some-menu {
+  position: fixed;
+  z-index: 10;
+}

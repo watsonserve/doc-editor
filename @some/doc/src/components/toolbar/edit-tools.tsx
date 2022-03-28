@@ -74,17 +74,12 @@ function FontTool(props: IToolProps) {
     <ToolBlk title="字体">
       <div className="edit-tools-btns">
         <Selector className="edit-tools__font-lev" options={fontLevList} value={fontLev} onInput={setFontLev} />
-        <Selector className="edit-tools__font-size" options={fontSizeList} value={fontSize} onInput={setFontSize} />
-        <a className="edit-tools-btn" onClick={handleFontSizeL}>
-          <span className="edit-tools__font-size-large">A</span>
-        </a>
-        <a className="edit-tools-btn" onClick={handleFontSizeS}>
-          <span className="edit-tools__font-size-small">A</span>
-        </a>
+        {/* 字号选择器 */}
         <Steper
           min={fontSizeList[0].name}
           max={fontSizeList[fontSizeList.length - 1].name}
           value={fontSize}
+          options={fontSizeList}
           onInput={setFontSize}
         />
       </div>

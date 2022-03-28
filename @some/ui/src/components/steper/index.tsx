@@ -1,10 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import Menu from '../menu';
 import { classify, numValidate } from '../../helper';
-import { ISteperProps } from '../../types';
+import { useDownOptions } from '../../helper/hook';
+import { ISteperProps, INameTitle } from '../../types';
 import './index.css';
 
 export default function(props: ISteperProps) {
   const [num, setNum] = useState(props.value.toString());
+  const [showOpts, setShowOpts] = useState(false);
+  const selfRef = useRef(null);
 
   useEffect(() => {
     setNum(numValidate(props.value, props.max, props.min).toString());
@@ -41,11 +45,20 @@ export default function(props: ISteperProps) {
     _emitInput(props.value + c * (props.step || 1));
   };
 
+  const handleFocus = (ev: React.FocusEvent) => {
+    ev.stopPropagation();
+    ev.preventDefault();
+
+    setShowOpts(true);
+  };
+
+  const { getPosition, options } = useDownOptions(props.value, props.options);
+
   const min = props.min || -Infinity;
   const max = props.max || Infinity;
 
   return (
-    <div className={classify(['some-steper', props.className])}>
+    <div className={classify(['some-steper', props.className])} ref={selfRef}>
       <span
         className={classify({"some-steper__sub": true, disabled: +num <= min })}
         onClick={ev => handleClick(ev, -1)}
@@ -55,13 +68,19 @@ export default function(props: ISteperProps) {
         type="text"
         value={num}
         onInput={handleInput}
-        onFocus={props.onFocus}
+        onFocus={handleFocus}
         onBlurCapture={emitInput}
       />
       <span
         className={classify({"some-steper__add": true, disabled: +num >= max })}
         onClick={ev => handleClick(ev, 1)}
       >+</span>
+
+      {showOpts && <Menu
+        tree={options}
+        style={getPosition(selfRef.current!)}
+        onClick={(dist: INameTitle<number>) => {props.onInput(dist.name); setShowOpts(false);}}
+      />}
     </div>
   );
 }
