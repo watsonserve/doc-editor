@@ -21,4 +21,9 @@ code {
   --menu-bg-color: #282c34;
   --menu-shadow-color: rgba(112, 112, 112, 0.25);
   --radius: 4px;
+  --form-bg-color: #555;
+  --form-disabled-bg-color: #444;
+  --form-disabled-color: #999;
+  --form-active-color: #444;
+  --form-hover-color: #444;
 }

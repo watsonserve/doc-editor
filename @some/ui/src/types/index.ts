@@ -1,4 +1,4 @@
-import { ReactElement, JSXElementConstructor, ReactPortal } from 'react';
+import React, { ReactElement, JSXElementConstructor, ReactPortal } from 'react';
 
 export interface INameTitle<T = string> {
   name: T;
@@ -40,4 +40,14 @@ export interface ISelectorProps<T = string> {
   value: T;
   options: INameTitle<T>[];
   onInput(v: T): void;
+}
+
+export interface ISteperProps {
+  className?: string;
+  value: number;
+  step?: number;
+  min?: number;
+  max?: number;
+  onFocus?(ev: React.FocusEvent): void;
+  onInput(val: number): void;
 }

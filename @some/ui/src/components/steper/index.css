@@ -1,0 +1,37 @@
+.some-steper {
+  display: flex;
+  border-radius: var(--radius);
+  width: 108px;
+  align-items: center;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.some-steper__sub, .some-steper__add {
+  display: block;
+  flex: 24px 0 0;
+  text-align: center;
+  background-color: var(--form-bg-color);
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.some-steper__sub.disabled, .some-steper__add.disabled {
+  cursor: not-allowed;
+  color: var(--form-disabled-color);
+  background-color: var(--form-disabled-bg-color);
+}
+
+.some-steper__input {
+  display: block;
+  outline: none;
+  box-sizing: border-box;
+  border: 0;
+  padding: 0 2px;
+  min-width: 60px;
+  max-width: 60px;
+  height: 24px;
+  color: #fff;
+  background-color: var(--form-bg-color);
+  line-height: 24px;
+}

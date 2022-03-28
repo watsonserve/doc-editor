@@ -20,3 +20,8 @@ export function fixPosition(el: HTMLElement | Element | null) {
 
   return { x, y };
 }
+
+export function numValidate(n: number, max = Infinity, min = -Infinity) {
+  return Math.max(Math.min(n, max), min);
+}
+

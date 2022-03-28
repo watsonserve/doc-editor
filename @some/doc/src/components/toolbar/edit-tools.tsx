@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { IToolProps } from './types';
 import ToolBlk from './tool-blk';
-import { Selector } from '@some/ui';
+import { Selector, Steper } from '@some/ui';
 
 const fontLevList = [
   {name: 'h1', title: '标题1'},
@@ -12,13 +12,51 @@ const fontLevList = [
   {name: 'h6', title: '标题6'},
   {name: 'p', title: '正文'},
 ];
-const fontSizeList = [10, 10.5, 11, 11.5, 12, 16].map(n => ({
-  name: n, title: `${n}pt`
-}));
+
+const fontCnSizeDict = new Map([
+  [5, '八号'],
+  [5.5, '七号'],
+  [6.5, '小六'],
+  [7.5, '六号'],
+  [9, '小五'],
+  [10.5, '五号'],
+  [12, '小四'],
+  [14, '四号'],
+  [15, '小三'],
+  [16, '三号'],
+  [18, '小二'],
+  [22, '二号'],
+  [24, '小一'],
+  [26, '一号'],
+  [36, '小初'],
+  [42, '初号'],
+]);
+
+const fontSizeRange = (ppi: number, mm: number) => {
+  const min = Math.ceil(864 / window.devicePixelRatio / ppi);
+  const max = Math.floor(mm * 72 / 25.4);
+
+  const foo = [];
+  for (let mid = (min + max) >> 1; mid > 72; mid >>= 1) {
+    foo.unshift(mid);
+  }
+
+  return Array.from(new Set([min, ...Array.from(fontCnSizeDict.keys()), 72, ...foo, max]))
+  .sort((a, b) => a - b)
+  .map(n => {
+    const cnSize = fontCnSizeDict.get(n);
+
+    return {
+      name: n, title: `${n}pt`, tip: cnSize ? ` (${cnSize})` : ''
+    };
+  });
+}
 
 function FontTool(props: IToolProps) {
   const [fontLev, setFontLev] = useState('h1');
   const [fontSize, setFontSize] = useState(12);
+
+  const fontSizeList = fontSizeRange(props.dpi, 210);
 
   const fontFamilyChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
     props.onChange('fontFamily', ev.target.value);
@@ -43,6 +81,12 @@ function FontTool(props: IToolProps) {
         <a className="edit-tools-btn" onClick={handleFontSizeS}>
           <span className="edit-tools__font-size-small">A</span>
         </a>
+        <Steper
+          min={fontSizeList[0].name}
+          max={fontSizeList[fontSizeList.length - 1].name}
+          value={fontSize}
+          onInput={setFontSize}
+        />
       </div>
       <div className="edit-tools-btns">
         <a className="edit-tools-btn" onClick={handleFontBlod}>

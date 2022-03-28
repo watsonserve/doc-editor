@@ -24,9 +24,11 @@ function MenuItem<T>(props: IMenuTree<T> & { onClick(): void }) {
 
     return (
       <li className={_className} onClick={handleClick}>
-        {Icon && <Icon />}
-        {checkbox && <input type="checkbox" checked={active} /> }
-        <span className="some-menu__item__title">{title}</span>
+        <div className="some-menu__item__main">
+          {Icon && <Icon />}
+          {checkbox && <input type="checkbox" checked={active} /> }
+          <span className="some-menu__item__title">{title}</span>
+        </div>
         {tip && <span className="some-menu__item__tip">{tip}</span>}
       </li>
     );

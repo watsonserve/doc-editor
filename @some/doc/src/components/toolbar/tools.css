@@ -88,9 +88,9 @@ a.edit-tools-btn {
 
 .some-selector {
   margin-right: 8px;
-  width: 4em;
+  width: fit-content;
 }
 
 .some-selector ul.some-menu {
-  width: 6em;
+  min-width: 6em;
 }
