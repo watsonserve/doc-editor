@@ -13,6 +13,19 @@ interface IChange {
   width: number;
 };
 
+function getLineHeight(fontSize: number) {
+  return fontSize / 2 * 3;
+}
+
+function getLineMarginTop(lineHeight: number, lineMargin: number) {
+  // 顶部行间距
+  return lineHeight * (lineMargin - 1) / 2;
+}
+
+function getLineMiddle(lineHeight: number, lineMargin: number) {
+  return lineHeight * lineMargin / 2;
+}
+
 export class Editor {
   private readonly elCanvas = document.createElement('canvas');
   private _collector: Collector<any>;
@@ -28,7 +41,7 @@ export class Editor {
   };
   private _point = {
     x: 0,
-    y: this.config.fontSize / 2 * 3 * (this.config.lineMargin - 1) / 2
+    y: 0
   };
   private _onCaretMove?: (p: IPoint) => void;
 
@@ -58,33 +71,16 @@ export class Editor {
     return this._scale;
   }
 
-  set scale(s: number) {
-    this._scale = s;
-  }
-
   get fontSize() {
     return this.config.fontSize / this._scale;
   }
 
-  set fontSize(s: number) {
-    this.config.fontSize = s * this._scale;
-    this._onCaretMove!(this.point);
-  }
-
   get lineMargin() {
-    return this.config.lineMargin;
-  }
-
-  set lineMargin(h: number) {
-    this.config.lineMargin = Math.max(1, h);
+    return this.config.lineMargin / this._scale;
   }
 
   get bgColor() {
     return this.config.bgColor;
-  }
-
-  set bgColor(c: string) {
-    this.config.bgColor = c;
   }
 
   get canvas() {
@@ -101,16 +97,44 @@ export class Editor {
     };
   }
 
+  set scale(s: number) {
+    this._scale = s;
+  }
+
+  set fontSize(s: number) {
+    this.config.fontSize = s * this._scale;
+    this.setCaretPoint();
+  }
+
+  set lineMargin(h: number) {
+    this.config.lineMargin = Math.max(1, h);
+    this.setCaretPoint();
+  }
+
+  set bgColor(c: string) {
+    this.config.bgColor = c;
+  }
+
   set point(p: IPoint) {
-    const halfLineHeight = this.config.fontSize / 4 * 3;
+    const halfLineHeight = getLineMiddle(getLineHeight(this.config.fontSize), this.config.lineMargin);
     const x = Math.min(this._point.x, p.x * this._scale);
     // 点击点应该是行的中间高度
     const y = Math.min(this._point.y, p.y * this._scale - halfLineHeight);
     this._point = { x, y };
     const timer = setTimeout(() => {
       clearTimeout(timer);
-      this._onCaretMove!(this.point);
+      this.setCaretPoint();
     }, 0);
+  }
+
+  setCaretPoint() {
+    const { fontSize, lineMargin } = this.config;
+    const lineHeight = getLineHeight(fontSize);
+    this._onCaretMove!({
+      x: this._point.x / this._scale,
+      y: getLineMiddle(lineHeight, lineMargin) / this._scale,
+      height: lineHeight
+    });
   }
 
   set onCaretMove(fn: (p: IPoint) => void) {
@@ -122,23 +146,23 @@ export class Editor {
     if (!ctx) return;
     let x, y: number;
 
-    const { fontSize = 32, lineMargin } = this.config;
-    const lineHeight = fontSize / 2 * 3;
-    const baseLine = _point.y + fontSize;
+    const { fontSize, lineMargin } = this.config;
+    const lineHeight = getLineHeight(fontSize);
     // enter key
     if ('\n' === txt) {
       x = 0;
       y = _point.y + lineHeight * lineMargin;
     } else {
+      const lineTop = _point.y + getLineMarginTop(lineHeight, lineMargin);
       ctx.fillStyle = this.config.bgColor;
-      ctx.fillRect(_point.x, _point.y, width, lineHeight);
+      ctx.fillRect(_point.x, lineTop, width, lineHeight);
       ctx.fillStyle = this.config.color;
-      ctx.fillText(txt, _point.x, baseLine, width);
+      ctx.fillText(txt, _point.x, lineTop + fontSize, width);
       x = _point.x + width;
       y = _point.y;
     }
     this._point = { x, y };
-    this._onCaretMove!(this.point);
+    this.setCaretPoint();
   }
   
   resize() {

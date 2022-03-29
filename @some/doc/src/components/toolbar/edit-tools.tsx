@@ -83,7 +83,7 @@ function FontTool(props: IToolProps) {
 
 function ParagraphTool(props: IToolProps) {
   const lineHeightChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
-    props.onChange('lineHeight', ev.target.value);
+    props.onChange('lineMargin', ev.target.value);
   };
   const lineHeightList = [1, 1.5, 2];
 

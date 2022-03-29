@@ -70,7 +70,7 @@ export default class EditorView extends HTMLElement {
     this.editorRef.resize();
   }
 
-  private _setLineHeight(margin = 1) {
+  private _setLineMargin(margin = 1) {
     this.editorRef.lineMargin = margin;
   }
 
@@ -90,8 +90,8 @@ export default class EditorView extends HTMLElement {
         return this._setPageSize(val.width, val.height);
       case 'fontSize':
         return this._setFontSize(val);
-      case 'lineHeight':
-        return this._setLineHeight(val);
+      case 'lineMargin':
+        return this._setLineMargin(val);
       default:
         console.warn(attr, val);
     }
