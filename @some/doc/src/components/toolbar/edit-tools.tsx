@@ -1,38 +1,12 @@
 import { useState } from 'react';
 import { IToolProps } from './types';
+import { fontLevList, fontCnSizeDict } from './constant';
 import ToolBlk from './tool-blk';
+import { getPPI, pt2px, px2pt } from '../../helper/unit';
 import { Selector, Steper } from '@some/ui';
 
-const fontLevList = [
-  {name: 'h1', title: '标题1'},
-  {name: 'h2', title: '标题2'},
-  {name: 'h3', title: '标题3'},
-  {name: 'h4', title: '标题4'},
-  {name: 'h5', title: '标题5'},
-  {name: 'h6', title: '标题6'},
-  {name: 'p', title: '正文'},
-];
-
-const fontCnSizeDict = new Map([
-  [5, '八号'],
-  [5.5, '七号'],
-  [6.5, '小六'],
-  [7.5, '六号'],
-  [9, '小五'],
-  [10.5, '五号'],
-  [12, '小四'],
-  [14, '四号'],
-  [15, '小三'],
-  [16, '三号'],
-  [18, '小二'],
-  [22, '二号'],
-  [24, '小一'],
-  [26, '一号'],
-  [36, '小初'],
-  [42, '初号'],
-]);
-
-const fontSizeRange = (ppi: number, mm: number) => {
+const fontSizeRange = (mm: number) => {
+  const ppi = getPPI();
   const min = Math.ceil(864 / window.devicePixelRatio / ppi);
   const max = Math.floor(mm * 72 / 25.4);
 
@@ -54,17 +28,14 @@ const fontSizeRange = (ppi: number, mm: number) => {
 
 function FontTool(props: IToolProps) {
   const [fontLev, setFontLev] = useState('h1');
-  const [fontSize, setFontSize] = useState(12);
 
-  const fontSizeList = fontSizeRange(props.dpi, 210);
+  const fontSizeList = fontSizeRange(210);
 
   const fontFamilyChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
     props.onChange('fontFamily', ev.target.value);
   };
 
-  const fontSizeChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
-    props.onChange('fontSize', +ev.target.value * props.dpi / 72);
-  };
+  const fontSizeChange = (pt: number) => props.onChange('fontSize', pt2px(pt));
 
   const handleFontSizeL = () => {};
   const handleFontSizeS = () => {};
@@ -78,9 +49,9 @@ function FontTool(props: IToolProps) {
         <Steper
           min={fontSizeList[0].name}
           max={fontSizeList[fontSizeList.length - 1].name}
-          value={fontSize}
+          value={px2pt(props.config.fontSize)}
           options={fontSizeList}
-          onInput={setFontSize}
+          onInput={fontSizeChange}
         />
       </div>
       <div className="edit-tools-btns">

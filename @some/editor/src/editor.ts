@@ -40,6 +40,7 @@ export default class EditorView extends HTMLElement {
         overflow: auto;
         text-align: left;
         background: #fff;
+        cursor: text;
       }
 
       .editor canvas.editor__canvas {

@@ -1,22 +1,14 @@
 import React, { Suspense, lazy, useRef, useEffect } from 'react';
 import './App.css';
 import EditorView from '@some/editor';
+import { getPPI } from './helper/unit';
 import { Syncer } from './helper/syncer';
 
 const Toolbar = lazy(() => import('./components/toolbar'));
 const Statbar = lazy(() => import('./components/statbar'));
 
-function getDPI() {
-  const foo = document.createElement('div');
-  foo.style.width = '1in';
-  document.body.append(foo);
-  const dpi = foo.clientWidth;
-  foo.remove();
-  return dpi;
-}
-
 function App() {
-  const dpi = useRef(getDPI());
+  const dpi = useRef(getPPI());
   const editorApiRef = useRef<any>(null);
   const mainRef = useRef<any>(null);
 
@@ -50,7 +42,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <Suspense fallback={<div></div>}>
-          <Toolbar dpi={dpi.current} config={config.current} onChange={handleConfigChange} />
+          <Toolbar config={config.current} onChange={handleConfigChange} />
         </Suspense>
       </header>
       <div className="main" ref={mainRef}>
