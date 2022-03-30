@@ -1,6 +1,6 @@
 import { CaretInputer, style } from './inputer';
-import { IPoint, Editor } from './core';
-import { ISyncer } from './collector';
+import { IPoint } from './core';
+import { ISyncer, Collector } from './collector';
 
 export default class EditorView extends HTMLElement {
   private elWrapper = document.createElement('div');
@@ -10,7 +10,7 @@ export default class EditorView extends HTMLElement {
 
   constructor(syncer: ISyncer) {
     super();
-    this.editorRef = new Editor(syncer);
+    this.editorRef = new Collector(syncer);
 
     this.elWrapper.setAttribute('class', 'editor');
     this.elWrapper.onclick = ev => this._handleClick(ev);
@@ -18,7 +18,6 @@ export default class EditorView extends HTMLElement {
     this.editorRef.onCaretMove = (p: IPoint) => this.elInputer.focus(p);
 
     this.editorRef.resize();
-    this.editorRef.bgColor = '#f00';
 
     const shadow = this.attachShadow({ mode: 'closed' });
     this.elWrapper.appendChild(this.elInputer.element);
@@ -57,7 +56,6 @@ export default class EditorView extends HTMLElement {
   }
 
   destroy() {
-    console.warn('on editor unmount');
     this.editorRef.destroy();
     this.elInputer.destroy();
     this.elStyle.remove();
@@ -88,6 +86,10 @@ export default class EditorView extends HTMLElement {
     this.editorRef.point = { x, y };
   };
 
+  private _setPagePadding(padding: any) {
+    this.editorRef.pagePadding = padding;
+  }
+
   change(attr: string, val: any) {
     switch (attr) {
       case 'pageSize':
@@ -98,6 +100,8 @@ export default class EditorView extends HTMLElement {
         return this._setFontSize(val);
       case 'lineMargin':
         return this._setLineMargin(val);
+      case 'pagePadding':
+        return this._setPagePadding(val);
       default:
         console.warn(attr, val);
     }

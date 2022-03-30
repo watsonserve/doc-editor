@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { IToolProps } from './types';
-import { fontLevList, fontFamilyList, fontCnSizeDict } from './constant';
+import { fontLevList, fontFamilyList, fontCnSizeDict, lineMarginList } from './constant';
 import ToolBlk from './tool-blk';
 import { getPPI, pt2px, px2pt } from '../../helper/unit';
 import { Selector, Steper } from '@some/ui';
@@ -27,7 +27,7 @@ const fontSizeRange = (mm: number) => {
 }
 
 function FontTool(props: IToolProps) {
-  const [fontFamily, setFontFamily] = useState('');
+  const [fontFamily, setFontFamily] = useState(props.config.fontFamily);
   const fontSizeList = fontSizeRange(210);
 
   const fontFamilyChange = (family: string) => {
@@ -88,19 +88,24 @@ function FontTool(props: IToolProps) {
 }
 
 function ParagraphTool(props: IToolProps) {
-  const lineHeightChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
-    props.onChange('lineMargin', ev.target.value);
+  const [lineMargin, setLineMargin] = useState(props.config.lineMargin);
+
+  const lineHeightChange = (_lineMargin: number) => {
+    props.onChange('lineMargin', _lineMargin);
+    setLineMargin(_lineMargin);
   };
-  const lineHeightList = [1, 1.5, 2];
 
   return (
     <ToolBlk title="段落">
       <div className="edit-tools-btns">
-        <select onChange={lineHeightChange}>
-        {
-          lineHeightList.map(x => (<option value={x} key={x}>{x}</option>))
-        }
-        </select>
+        <Steper
+          min={1}
+          max={10}
+          step={0.25}
+          options={lineMarginList}
+          value={lineMargin}
+          onInput={lineHeightChange}
+        />
       </div>
     </ToolBlk>
   );

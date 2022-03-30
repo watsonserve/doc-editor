@@ -57,3 +57,11 @@ export const fontCnSizeDict = new Map([
   [36, '小初'],
   [42, '初号'],
 ]);
+
+export const lineMarginList = [
+  { name: 1, title: '1' },
+  { name: 1.25, title: '1.25' },
+  { name: 1.5, title: '1.5' },
+  { name: 2, title: '2' },
+  { name: 3, title: '3' }
+];

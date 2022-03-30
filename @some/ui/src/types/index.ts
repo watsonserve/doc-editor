@@ -49,6 +49,5 @@ export interface ISteperProps {
   min?: number;
   max?: number;
   options: INameTitle<number>[];
-  onFocus?(ev: React.FocusEvent): void;
   onInput(val: number): void;
 }

@@ -1,4 +1,4 @@
-import { Collector, ISyncer } from './collector';
+import { getLineHeight, getLineMarginTop, getLineMiddle, getFont } from './helper';
 
 export interface IPoint {
   x: number;
@@ -7,34 +7,23 @@ export interface IPoint {
   height?: number;
 }
 
+type IBlockSize = { [P in 'top' | 'right' | 'bottom' | 'left']: number };
+
 interface IChange {
   txt: string;
   paragraph: number;
-  width: number;
 };
 
-function getLineHeight(fontSize: number) {
-  return fontSize / 2 * 3;
-}
-
-function getLineMarginTop(lineHeight: number, lineMargin: number) {
-  // 顶部行间距
-  return lineHeight * (lineMargin - 1) / 2;
-}
-
-function getLineMiddle(lineHeight: number, lineMargin: number) {
-  return lineHeight * lineMargin / 2;
-}
-
-export class Editor {
+export abstract class Editor {
   private readonly elCanvas = document.createElement('canvas');
-  private _collector: Collector<any>;
   private ctx: CanvasRenderingContext2D;
   private _scale = window.devicePixelRatio;
   // 这里存储canvas使用的坐标，向外暴露的是单倍坐标值
   private config = {
     fontSize: 32,
     fontFamily: 'serif',
+    fontWeight: 400,
+    fontStyle: 0,
     lineMargin: 1,
     color: '#333',
     bgColor: 'transparent'
@@ -43,11 +32,11 @@ export class Editor {
     x: 0,
     y: 0
   };
+  private _pagePadding: IBlockSize = { top: 0, right: 0, bottom: 0, left: 0 };
   private _onCaretMove?: (p: IPoint) => void;
+  abstract redraw(): void;
 
-  constructor(sync: ISyncer) {
-    this._collector = new Collector(sync);
-    this._collector.onRecv = (payload: IChange) => this.draw({ ...payload, width: payload.width * this._scale });
+  constructor() {
     this.elCanvas.setAttribute('class', 'editor__canvas');
     const ctx = this.elCanvas.getContext('2d');
     if (!ctx) throw new Error('get canvas 2d context faild');
@@ -59,12 +48,7 @@ export class Editor {
   destroy() {
     console.warn('on editor destroy');
     this.elCanvas.removeEventListener('resize', this.resize);
-    this._collector.destroy();
     document.removeChild(this.elCanvas);
-  }
-
-  set syncer(sync: ISyncer) {
-    this._collector.syncLayout = sync;
   }
 
   get scale() {
@@ -97,6 +81,16 @@ export class Editor {
     };
   }
 
+  get pagePadding() {
+    const { top, right, bottom, left } = this._pagePadding;
+    return {
+      top: top / this._scale,
+      right: right / this._scale,
+      bottom: bottom / this._scale,
+      left: left / this._scale
+    };
+  }
+
   set scale(s: number) {
     this._scale = s;
   }
@@ -115,15 +109,28 @@ export class Editor {
     this.setCaretPoint();
   }
 
+  set pagePadding(padding: IBlockSize) {
+    const { top, right, bottom, left } = padding;
+    this._pagePadding = {
+      top: top * this._scale,
+      right: right * this._scale,
+      bottom: bottom * this._scale,
+      left: left * this._scale
+    };
+    this.redraw();
+  }
+
   set bgColor(c: string) {
     this.config.bgColor = c;
   }
 
   set point(p: IPoint) {
+    const { width: pageWidth } = this.elCanvas;
+    const { top: paddingTop, right: paddingRight, left: paddingLeft } = this._pagePadding;
     const halfLineHeight = getLineMiddle(getLineHeight(this.config.fontSize), this.config.lineMargin);
-    const x = Math.min(this._point.x, p.x * this._scale);
+    const x = Math.max(paddingLeft, Math.min(pageWidth - paddingRight, p.x * this._scale));
     // 点击点应该是行的中间高度
-    const y = Math.min(this._point.y, p.y * this._scale - halfLineHeight);
+    const y = Math.max(paddingTop, Math.min(this._point.y, p.y * this._scale - halfLineHeight));
     this._point = { x, y };
     const timer = setTimeout(() => {
       clearTimeout(timer);
@@ -145,26 +152,32 @@ export class Editor {
     this._onCaretMove = fn;
   }
 
-  private draw({ txt, width, paragraph }: any) {
+  protected draw({ txt, paragraph }: IChange) {
     const { ctx, _point } = this;
     if (!ctx) return;
-    let x, y: number;
+    let x: number, y = _point.y;
 
-    const { fontFamily, fontSize, lineMargin } = this.config;
+    const { fontFamily, fontSize, fontWeight, lineMargin } = this.config;
+    const paddingLeft = this._pagePadding.left;
     const lineHeight = getLineHeight(fontSize);
     // enter key
     if ('\n' === txt) {
-      x = 0;
-      y = _point.y + lineHeight * lineMargin;
+      x = paddingLeft;
+      y += lineHeight * lineMargin;
     } else {
+      this.ctx.font = getFont('normal', fontWeight, fontSize, fontFamily);
+      const width = ctx.measureText(txt).width;
       const lineTop = _point.y + getLineMarginTop(lineHeight, lineMargin);
-      this.ctx.font = `${fontSize}px ${fontFamily}`;
-      ctx.fillStyle = this.config.bgColor;
-      ctx.fillRect(_point.x, lineTop, width, lineHeight);
+
+      // 背景色
+      // ctx.fillStyle = this.config.bgColor;
+      // ctx.fillRect(_point.x, lineTop, width, lineHeight);
+
+      // 写字
       ctx.fillStyle = this.config.color;
       ctx.fillText(txt, _point.x, lineTop + fontSize, width);
+
       x = _point.x + width;
-      y = _point.y;
     }
     this._point = { x, y };
     this.setCaretPoint();
@@ -172,7 +185,7 @@ export class Editor {
   
   resize() {
     let changed = false;
-    const { elCanvas, config } = this;
+    const { elCanvas } = this;
 
     if ((elCanvas?.clientWidth || 0) * this._scale !== elCanvas.width) {
       elCanvas.width = (elCanvas?.clientWidth || 0) * this._scale;
@@ -182,23 +195,7 @@ export class Editor {
       elCanvas.height = (elCanvas?.clientHeight || 0) * this._scale;
       changed = true;
     }
-  }
-
-  write(str: string) {
-    const ctx = this.ctx;
-    if (!ctx) return;
-    const list = str.split('\n');
-    list.forEach((txt, idx) => {
-      if (txt) {
-        const payload = { txt, width: ctx.measureText(txt).width, paragraph: 0 };
-        this.draw(payload);
-        this._collector.push({ ...payload, width: payload.width / this._scale });
-      }
-      if (idx < list.length - 1) {
-        const payload = { txt: '\n', width: 0, paragraph: 0 };
-        this.draw(payload);
-        this._collector.push(payload);
-      }
-    });
+    if (!changed) return;
+    this.redraw();
   }
 }

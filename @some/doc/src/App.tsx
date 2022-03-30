@@ -14,7 +14,7 @@ function App() {
 
   const config = useRef({
     fontSize: 16,
-    family: 'serif',
+    fontFamily: 'serif',
     lineMargin: 1,
     color: '#333',
     bgColor: 'transparent',

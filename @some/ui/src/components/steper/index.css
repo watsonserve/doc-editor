@@ -31,6 +31,7 @@
   min-width: 60px;
   max-width: 60px;
   height: 24px;
+  text-align: center;
   color: #fff;
   background-color: var(--form-bg-color);
   line-height: 24px;
