@@ -74,6 +74,10 @@ export default class EditorView extends HTMLElement {
     this.editorRef.lineMargin = margin;
   }
 
+  private _setFontFamily(fontFamily = '') {
+    this.editorRef.fontFamily = fontFamily;
+  }
+
   private _setFontSize(fontSize = 32) {
     this.editorRef.fontSize = fontSize;
   }
@@ -88,6 +92,8 @@ export default class EditorView extends HTMLElement {
     switch (attr) {
       case 'pageSize':
         return this._setPageSize(val.width, val.height);
+      case 'fontFamily':
+        return this._setFontFamily(val);
       case 'fontSize':
         return this._setFontSize(val);
       case 'lineMargin':

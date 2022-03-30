@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { IToolProps } from './types';
-import { fontLevList, fontCnSizeDict } from './constant';
+import { fontLevList, fontFamilyList, fontCnSizeDict } from './constant';
 import ToolBlk from './tool-blk';
 import { getPPI, pt2px, px2pt } from '../../helper/unit';
 import { Selector, Steper } from '@some/ui';
@@ -27,12 +27,12 @@ const fontSizeRange = (mm: number) => {
 }
 
 function FontTool(props: IToolProps) {
-  const [fontLev, setFontLev] = useState('h1');
-
+  const [fontFamily, setFontFamily] = useState('');
   const fontSizeList = fontSizeRange(210);
 
-  const fontFamilyChange = (ev: React.ChangeEvent<HTMLSelectElement>) => {
-    props.onChange('fontFamily', ev.target.value);
+  const fontFamilyChange = (family: string) => {
+    setFontFamily(family);
+    props.onChange('fontFamily', family);
   };
 
   const fontSizeChange = (pt: number) => props.onChange('fontSize', pt2px(pt));
@@ -44,7 +44,13 @@ function FontTool(props: IToolProps) {
   return (
     <ToolBlk title="字体">
       <div className="edit-tools-btns">
-        <Selector className="edit-tools__font-lev" options={fontLevList} value={fontLev} onInput={setFontLev} />
+        {/* 字体选择器 */}
+        <Selector
+          className="edit-tools__font-lev"
+          options={fontFamilyList}
+          value={fontFamily}
+          onInput={fontFamilyChange}
+        />
         {/* 字号选择器 */}
         <Steper
           min={fontSizeList[0].name}
@@ -101,6 +107,7 @@ function ParagraphTool(props: IToolProps) {
 }
 
 export default function EditTools(props: IToolProps) {
+  const [fontLev, setFontLev] = useState('h1');
 
   return (
     <div className={`${props.className} edit-tools`}>
@@ -111,6 +118,7 @@ export default function EditTools(props: IToolProps) {
       <FontTool {...props} />
       <ParagraphTool {...props} />
       <ToolBlk title="样式">
+        <Selector className="edit-tools__font-lev" options={fontLevList} value={fontLev} onInput={setFontLev} />
       </ToolBlk>
       <ToolBlk title="编辑">
       </ToolBlk>

@@ -21,6 +21,14 @@ export const menuList = [{
   title: '帮助'
 }];
 
+export const fontFamilyList = [
+  { name: '"Bradley Hand ITC"', title: 'Bradley Hand ITC' },
+  { name: '"Noto Mono"', title: 'Noto Mono' },
+  { name: '"Source Han Serif"', title: 'Source Han Serif', tip: '思源宋体' },
+  { name: '"Source Han Sans"', title: 'Source Han Sans', tip: '思源黑体' },
+  { name: '"DejaVu Sans Mono"', title: 'DejaVu Sans Mono' },
+];
+
 export const fontLevList = [
   {name: 'h1', title: '标题1'},
   {name: 'h2', title: '标题2'},

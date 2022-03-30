@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useRef, useEffect } from 'react';
+import { Suspense, lazy, useRef, useEffect } from 'react';
 import './App.css';
 import EditorView from '@some/editor';
 import { getPPI } from './helper/unit';

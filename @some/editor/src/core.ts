@@ -34,7 +34,7 @@ export class Editor {
   // 这里存储canvas使用的坐标，向外暴露的是单倍坐标值
   private config = {
     fontSize: 32,
-    family: 'serif',
+    fontFamily: 'serif',
     lineMargin: 1,
     color: '#333',
     bgColor: 'transparent'
@@ -76,7 +76,7 @@ export class Editor {
   }
 
   get lineMargin() {
-    return this.config.lineMargin / this._scale;
+    return this.config.lineMargin;
   }
 
   get bgColor() {
@@ -99,6 +99,10 @@ export class Editor {
 
   set scale(s: number) {
     this._scale = s;
+  }
+
+  set fontFamily(fontFamily: string) {
+    this.config.fontFamily = fontFamily;
   }
 
   set fontSize(s: number) {
@@ -132,8 +136,8 @@ export class Editor {
     const lineHeight = getLineHeight(fontSize);
     this._onCaretMove!({
       x: this._point.x / this._scale,
-      y: getLineMiddle(lineHeight, lineMargin) / this._scale,
-      height: lineHeight
+      y: (this._point.y + getLineMarginTop(lineHeight, lineMargin)) / this._scale,
+      height: lineHeight / this._scale
     });
   }
 
@@ -146,7 +150,7 @@ export class Editor {
     if (!ctx) return;
     let x, y: number;
 
-    const { fontSize, lineMargin } = this.config;
+    const { fontFamily, fontSize, lineMargin } = this.config;
     const lineHeight = getLineHeight(fontSize);
     // enter key
     if ('\n' === txt) {
@@ -154,6 +158,7 @@ export class Editor {
       y = _point.y + lineHeight * lineMargin;
     } else {
       const lineTop = _point.y + getLineMarginTop(lineHeight, lineMargin);
+      this.ctx.font = `${fontSize}px ${fontFamily}`;
       ctx.fillStyle = this.config.bgColor;
       ctx.fillRect(_point.x, lineTop, width, lineHeight);
       ctx.fillStyle = this.config.color;
@@ -177,8 +182,6 @@ export class Editor {
       elCanvas.height = (elCanvas?.clientHeight || 0) * this._scale;
       changed = true;
     }
-    if (!changed) return;
-    this.ctx.font = `${config.fontSize}px ${config.family}`;
   }
 
   write(str: string) {

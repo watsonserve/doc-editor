@@ -69,7 +69,7 @@ export default function(props: ISteperProps) {
     setShowOpts(0);
   };
 
-  const { getPosition, options } = useDownOptions(props.value, props.options);
+  const { getPosition, options } = useDownOptions(+num, props.options);
 
   const min = props.min || -Infinity;
   const max = props.max || Infinity;
