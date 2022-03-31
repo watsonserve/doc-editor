@@ -1,4 +1,5 @@
 import { getLineHeight, getLineMarginTop, getLineMiddle, getFont } from './helper';
+import { IBlockSize } from './types';
 
 export interface IPoint {
   x: number;
@@ -6,8 +7,6 @@ export interface IPoint {
   width?: number;
   height?: number;
 }
-
-type IBlockSize = { [P in 'top' | 'right' | 'bottom' | 'left']: number };
 
 interface IChange {
   txt: string;
@@ -91,20 +90,30 @@ export abstract class Editor {
     };
   }
 
+  get usableSize() {
+    const { width, height } = this.elCanvas;
+    const { top, right, bottom, left } = this._pagePadding;
+
+    return {
+      width: width - left - right,
+      height: height - top - bottom
+    };
+  }
+
   set scale(s: number) {
     this._scale = s;
   }
 
-  set fontFamily(fontFamily: string) {
+  protected set fontFamily(fontFamily: string) {
     this.config.fontFamily = fontFamily;
   }
 
-  set fontSize(s: number) {
+  protected set fontSize(s: number) {
     this.config.fontSize = s * this._scale;
     this.setCaretPoint();
   }
 
-  set lineMargin(h: number) {
+  protected set lineMargin(h: number) {
     this.config.lineMargin = Math.max(1, h);
     this.setCaretPoint();
   }
@@ -120,7 +129,7 @@ export abstract class Editor {
     this.redraw();
   }
 
-  set bgColor(c: string) {
+  protected set bgColor(c: string) {
     this.config.bgColor = c;
   }
 
@@ -138,7 +147,7 @@ export abstract class Editor {
     }, 0);
   }
 
-  setCaretPoint() {
+  protected setCaretPoint() {
     const { fontSize, lineMargin } = this.config;
     const lineHeight = getLineHeight(fontSize);
     this._onCaretMove!({

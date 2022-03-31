@@ -1,6 +1,7 @@
 import { CaretInputer, style } from './inputer';
 import { IPoint } from './core';
 import { ISyncer, Collector } from './collector';
+import { EnWriteType } from './types';
 
 export default class EditorView extends HTMLElement {
   private elWrapper = document.createElement('div');
@@ -14,7 +15,7 @@ export default class EditorView extends HTMLElement {
 
     this.elWrapper.setAttribute('class', 'editor');
     this.elWrapper.onclick = ev => this._handleClick(ev);
-    this.elInputer.onInput = (str: string) => this.editorRef.write(str);
+    this.elInputer.onInput = (txt: string) => this.editorRef.write({ type: EnWriteType.TEXT, txt });
     this.editorRef.onCaretMove = (p: IPoint) => this.elInputer.focus(p);
 
     this.editorRef.resize();
@@ -68,18 +69,6 @@ export default class EditorView extends HTMLElement {
     this.editorRef.resize();
   }
 
-  private _setLineMargin(margin = 1) {
-    this.editorRef.lineMargin = margin;
-  }
-
-  private _setFontFamily(fontFamily = '') {
-    this.editorRef.fontFamily = fontFamily;
-  }
-
-  private _setFontSize(fontSize = 32) {
-    this.editorRef.fontSize = fontSize;
-  }
-
   private _handleClick(ev: MouseEvent) {
     const x = Math.max(ev.offsetX - 4, 0);
     const y = ev.offsetY;
@@ -95,11 +84,12 @@ export default class EditorView extends HTMLElement {
       case 'pageSize':
         return this._setPageSize(val.width, val.height);
       case 'fontFamily':
-        return this._setFontFamily(val);
       case 'fontSize':
-        return this._setFontSize(val);
       case 'lineMargin':
-        return this._setLineMargin(val);
+        // return this._setFontFamily(val);
+        // return this._setFontSize(val);
+        // return this._setLineMargin(val);
+        return this.editorRef.write({ type: EnWriteType.STYLE, [attr]: val });
       case 'pagePadding':
         return this._setPagePadding(val);
       default:
