@@ -23,7 +23,7 @@ const compDict: { [name: string]: (props: IToolProps) => JSX.Element } = {
 
 export default function Toolbar(props: IToolProps) {
   const handleClickRef = useRef<null | ((s: string) => void)>(null);
-  const [active, setActive] = useState('file');
+  const [active, setActive] = useState('edit');
   handleClickRef.current = setActive;
 
   return useMemo(() => {

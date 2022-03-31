@@ -53,7 +53,7 @@ export default function(props: ISteperProps) {
   const handleClick = (ev: React.MouseEvent<HTMLSpanElement, MouseEvent>, c: -1 | 1) => {
     ev.stopPropagation();
     ev.preventDefault();
-    _emitInput(props.value + c * (props.step || 1));
+    _emitInput(+num + c * (props.step || 1));
   };
 
   const handleFocus = (ev: React.FocusEvent) => {
