@@ -12,13 +12,6 @@ export const FontWeight = EnFontStyle.LIGHTER | EnFontStyle.NORMAL | EnFontStyle
 
 export const fontStyleMask = Object.keys(EnFontStyle).reduce((s, k) => s & (+k || 0), 0);
 
-export enum EnWriteType {
-  UNKNOW,
-  TEXT,
-  FONT_STYLE,
-  PARAGRAPH_STYLE
-}
-
 type TRBL = 'top' | 'right' | 'bottom' | 'left';
 
 export type IBlockSize = Record<TRBL, number>;
@@ -27,23 +20,44 @@ export type IPageStyle = {
   padding: IBlockSize;
 }
 
-export interface IParagraphStyle {
+export interface IFontStyle {
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: number;
+}
+
+export interface IParagraphOnlyStyle {
   firstTab: number;
   tab: number;
   marginTop: number;
   marginBottom: number;
   lineMargin: number;
+};
+
+export type IParagraphStyle = IFontStyle & IParagraphOnlyStyle;
+
+export enum EnWriteType {
+  UNKNOW = 0,
+  TEXT = 1,
+  FONT_STYLE = 2,
+  PARAGRAPH_STYLE = 6
 }
 
-export interface IFontStyle {
-  fontSize: number;
-  fontWeight: number;
-  fontFamily: string;
+export interface ITxtNode { type: EnWriteType.TEXT; txt: string; };
+export interface IParagraphNode extends IParagraphStyle { type: EnWriteType.PARAGRAPH_STYLE };
+export interface IFontStyleNode extends IFontStyle { type: EnWriteType.FONT_STYLE };
+
+export type IDocNode = ITxtNode | IParagraphNode | IFontStyleNode;
+
+// export interface __IDocNode extends IParagraphStyle { type: EnWriteType; txt: string };
+
+export interface IParagraphDesc {
+  marginTop: number;
+  marginBottom: number;
   lineMargin: number;
+  paragraph: {
+    line: IDocNode[];
+    tab: number;
+    baseHeight: number;
+  }[];
 }
-
-export type IDocNode = { type: EnWriteType; txt: string; }
-  | ({ type: EnWriteType } & IParagraphStyle)
-  | ({ type: EnWriteType } & IFontStyle);
-
-export type __IDocNode = { type: EnWriteType; txt: string; } & IFontStyle & IParagraphStyle;

@@ -1,5 +1,5 @@
 import { getLineHeight, getLineMarginTop, getLineMiddle, getFont } from './helper';
-import { IBlockSize } from './types';
+import { IBlockSize, IParagraphDesc } from './types';
 
 export interface IPoint {
   x: number;
@@ -190,6 +190,10 @@ export abstract class Editor {
     }
     this._point = { x, y };
     this.setCaretPoint();
+  }
+
+  protected drawParagraph(p: IParagraphDesc) {
+
   }
   
   resize() {

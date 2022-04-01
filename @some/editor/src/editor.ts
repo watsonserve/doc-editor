@@ -89,7 +89,7 @@ export default class EditorView extends HTMLElement {
         // return this._setFontFamily(val);
         // return this._setFontSize(val);
         // return this._setLineMargin(val);
-        return this.editorRef.write({ type: EnWriteType.STYLE, [attr]: val });
+        return this.editorRef.write({ type: EnWriteType.FONT_STYLE, [attr]: val });
       case 'pagePadding':
         return this._setPagePadding(val);
       default:

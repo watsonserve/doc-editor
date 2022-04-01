@@ -1,20 +1,24 @@
 import { EventEmitter } from 'events';
 import { Editor } from './core';
-import { PreRender } from './prerender';
-import { EnWriteType, IFontStyle, IDocNode } from './types';
+import { PreRender, getFontStyleNode, getParagraphNode } from './prerender';
+import { EnWriteType, IFontStyle, IDocNode, IFontStyleNode, IParagraphDesc } from './types';
+
+type ISyncSeg = IDocNode & { paragraph: number };
 
 export interface ISyncer extends EventEmitter {
-  send: (data: any[])=> void;
+  send: (data: ISyncSeg[])=> void;
 }
 
-export class Collector<T = {}> extends Editor {
-  private cache: T[] = [];
+export class Collector extends Editor {
+  private cache: ISyncSeg[] = [];
   private todoTimer = 0;
   private syncer?: ISyncer;
   private readonly prerender = new PreRender();
   private doc: IDocNode[] = [];
 
-  private handleRecv = (args: any) => this.draw(args);
+  private handleRecv = ({ paragraph, ...payload }: ISyncSeg) => {
+    this.doc[paragraph] = payload;
+  };
 
   constructor(io: ISyncer) {
     super();
@@ -47,20 +51,16 @@ export class Collector<T = {}> extends Editor {
   }
 
   private writeStyle(styl: Partial<IFontStyle>) {
-    const fontStyleDict = new Set<keyof IFontStyle>(['fontSize', 'fontFamily', 'lineMargin']);
-
-    (<(keyof IFontStyle)[]>Object.keys(styl)).forEach((k) => {
-      const v = styl[k];
-      if (!fontStyleDict.has(k) || undefined === v) return;
-      (super[k] as any) = v;
-    });
-
     const last = this.doc[this.doc.length - 1];
-    if (EnWriteType.FONT_STYLE === last.type) {
+
+    // 前序节点为字符样式节点
+    if (EnWriteType.FONT_STYLE & last.type) {
       this.doc[this.doc.length - 1] = { ...last, ...styl };
-    } else {
-      this.doc.push({ type: EnWriteType.FONT_STYLE, ...styl });
+      return;
     }
+    // 复制前一个样式节点
+    const baseStyl = getFontStyleNode(this.doc) || {};
+    this.doc.push({ ...baseStyl, ...styl } as IFontStyleNode);
   }
 
   private writeText(txt: string) {
@@ -68,21 +68,38 @@ export class Collector<T = {}> extends Editor {
     for (let idx = 0; idx < list.length; idx++) {
       let str = list[idx];
       let payload = null;
+      let seg = this.doc.length;
+      const lastNode = this.doc[seg - 1];
 
+      // 插入一个文本节点
       if (str) {
-        payload = { txt: str, paragraph: 0 };
-        this.doc.push({ type: EnWriteType.TEXT, txt: str });
+        // 续写前序节点
+        if (EnWriteType.TEXT === lastNode.type) {
+          lastNode.txt += str;
+          payload = { type: EnWriteType.TEXT, txt: lastNode.txt, paragraph: seg - 1 };
+        } else {
+          // 插入新文本节点
+          this.doc.push({ type: EnWriteType.TEXT, txt: str });
+          payload = { type: EnWriteType.TEXT, txt: str, paragraph: seg };
+        }
       }
 
+      // 插入段落
       if (idx < list.length - 1) {
-        payload = { txt: '\n', paragraph: 0 };
-        this.doc.push({ type: EnWriteType.PARAGRAPH_STYLE, txt: '\n' });
+        const pNode = getParagraphNode(this.doc);
+        if (!pNode) return;
+        // 前序节点是样式节点: 改成段落节点
+        if (EnWriteType.FONT_STYLE === lastNode.type) {
+          Object.assign(lastNode, pNode);
+          payload = { ...pNode, paragraph: seg - 1 };
+        } else {
+          this.doc.push(pNode);
+          payload = { ...pNode, paragraph: seg };
+        }
       }
 
-      if (payload) {
-        this.draw(payload);
-        this.cache.push(payload as any);
-      }
+      if (!payload) return;
+      this.cache.push(payload as ISyncSeg);
     }
   }
 
@@ -95,8 +112,9 @@ export class Collector<T = {}> extends Editor {
       this.writeText(params.txt);
     }
 
-    this.prerender.getLine(this.doc, this.usableSize.width, this.scale);
-    if (this.todoTimer) return;
+    const articles = this.prerender.getParagraph(this.doc, this.usableSize.width, this.scale);
+    if (this.todoTimer || !articles) return;
+    this.drawParagraph(articles);
 
     this.todoTimer = window.setTimeout(() => {
       clearTimeout(this.todoTimer);
