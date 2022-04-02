@@ -1,7 +1,14 @@
 import { EventEmitter } from 'events';
 import { Editor } from './core';
-import { PreRender, getFontStyleNode, getParagraphNode } from './prerender';
-import { EnWriteType, IFontStyle, IDocNode, IFontStyleNode, IParagraphDesc } from './types';
+import { PreRender } from './prerender';
+import {
+  EnWriteType,
+  IFontStyle,
+  IDocNode,
+  IStyleNode,
+  IFontStyleNode,
+  IParagraphNode
+} from './types';
 
 type ISyncSeg = IDocNode & { paragraph: number };
 
@@ -15,6 +22,7 @@ export class Collector extends Editor {
   private syncer?: ISyncer;
   private readonly prerender = new PreRender();
   private doc: IDocNode[] = [];
+  private stylIndexer: IStyleNode[] = [];
 
   private handleRecv = ({ paragraph, ...payload }: ISyncSeg) => {
     this.doc[paragraph] = payload;
@@ -22,6 +30,17 @@ export class Collector extends Editor {
 
   constructor(io: ISyncer) {
     super();
+    this.doc[0] = this.stylIndexer[0] = {
+      type: EnWriteType.PARAGRAPH_STYLE,
+      fontFamily: '',
+      fontSize: 16,
+      fontWeight: 400,
+      firstTab: 0,
+      tab: 0,
+      marginTop: 0,
+      marginBottom: 0,
+      lineMargin: 1
+    };
     this.syncLayout = io;
   }
 
@@ -53,14 +72,20 @@ export class Collector extends Editor {
   private writeStyle(styl: Partial<IFontStyle>) {
     const last = this.doc[this.doc.length - 1];
 
-    // 前序节点为字符样式节点
+    // 前序节点为样式节点
     if (EnWriteType.FONT_STYLE & last.type) {
-      this.doc[this.doc.length - 1] = { ...last, ...styl };
+      Object.assign(last, styl);
       return;
     }
+
     // 复制前一个样式节点
-    const baseStyl = getFontStyleNode(this.doc) || {};
-    this.doc.push({ ...baseStyl, ...styl } as IFontStyleNode);
+    const nextStylNode = {
+      ...styl,
+      __proto__: this.stylIndexer[this.stylIndexer.length - 1],
+      type: EnWriteType.FONT_STYLE
+    } as IFontStyleNode;
+    this.doc.push(nextStylNode);
+    this.stylIndexer.push(nextStylNode);
   }
 
   private writeText(txt: string) {
@@ -86,19 +111,23 @@ export class Collector extends Editor {
 
       // 插入段落
       if (idx < list.length - 1) {
-        const pNode = getParagraphNode(this.doc);
-        if (!pNode) return;
         // 前序节点是样式节点: 改成段落节点
         if (EnWriteType.FONT_STYLE === lastNode.type) {
-          Object.assign(lastNode, pNode);
-          payload = { ...pNode, paragraph: seg - 1 };
+          (lastNode as any).type = EnWriteType.PARAGRAPH_STYLE;
+          payload = { paragraph: seg - 1 };
         } else {
+          const pNode: IParagraphNode = {
+            __proto__: this.stylIndexer[this.stylIndexer.length - 1],
+            type: EnWriteType.PARAGRAPH_STYLE
+          } as any;
           this.doc.push(pNode);
-          payload = { ...pNode, paragraph: seg };
+          this.stylIndexer.push(pNode);
+          payload = { paragraph: seg };
         }
       }
 
       if (!payload) return;
+      Object.assign(payload, lastNode, { type: EnWriteType.PARAGRAPH_STYLE });
       this.cache.push(payload as ISyncSeg);
     }
   }

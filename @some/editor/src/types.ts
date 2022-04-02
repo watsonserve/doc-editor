@@ -47,7 +47,9 @@ export interface ITxtNode { type: EnWriteType.TEXT; txt: string; };
 export interface IParagraphNode extends IParagraphStyle { type: EnWriteType.PARAGRAPH_STYLE };
 export interface IFontStyleNode extends IFontStyle { type: EnWriteType.FONT_STYLE };
 
-export type IDocNode = ITxtNode | IParagraphNode | IFontStyleNode;
+export type IStyleNode = IParagraphNode | IFontStyleNode;
+export type IDocNode = ITxtNode | IStyleNode;
+
 
 // export interface __IDocNode extends IParagraphStyle { type: EnWriteType; txt: string };
 
