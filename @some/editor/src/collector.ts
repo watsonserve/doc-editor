@@ -141,8 +141,8 @@ export class Collector extends Editor {
       this.writeText(params.txt);
     }
 
-    const articles = this.prerender.getParagraph(this.doc, this.usableSize.width, this.scale);
-    if (this.todoTimer || !articles) return;
+    if (this.todoTimer || !this.doc || this.doc.length < 2) return;
+    const articles = this.prerender.initArticle(this.doc, this.usableSize.width, this.scale);
     this.drawParagraph(articles);
 
     this.todoTimer = window.setTimeout(() => {

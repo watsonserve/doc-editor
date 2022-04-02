@@ -63,3 +63,9 @@ export interface IParagraphDesc {
     baseHeight: number;
   }[];
 }
+
+export interface IRow {
+  segments: IDocNode[];
+  tab: number;
+  baseHeight: number;
+}

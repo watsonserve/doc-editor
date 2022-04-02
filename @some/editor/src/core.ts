@@ -1,5 +1,5 @@
-import { getLineHeight, getLineMarginTop, getLineMiddle, getFont } from './helper';
-import { IBlockSize, IParagraphDesc } from './types';
+import { getLineHeight, getLineMarginHalf, getBaseline, getLineMiddle, getFont } from './helper';
+import { EnWriteType, IBlockSize, IFontStyleNode, IParagraphNode, IRow, ITxtNode } from './types';
 
 export interface IPoint {
   x: number;
@@ -152,7 +152,7 @@ export abstract class Editor {
     const lineHeight = getLineHeight(fontSize);
     this._onCaretMove!({
       x: this._point.x / this._scale,
-      y: (this._point.y + getLineMarginTop(lineHeight, lineMargin)) / this._scale,
+      y: (this._point.y + getLineMarginHalf(lineHeight, lineMargin)) / this._scale,
       height: lineHeight / this._scale
     });
   }
@@ -161,39 +161,40 @@ export abstract class Editor {
     this._onCaretMove = fn;
   }
 
-  protected draw({ txt, paragraph }: IChange) {
-    const { ctx, _point } = this;
-    if (!ctx) return;
-    let x: number, y = _point.y;
+  protected drawParagraph(lines: IRow[]) {
+    let y = this._pagePadding.top;
+    let paragraphMarginBottom = 0;
+    const pagePaddingLeft = this._pagePadding.left;
 
-    const { fontFamily, fontSize, fontWeight, lineMargin } = this.config;
-    const paddingLeft = this._pagePadding.left;
-    const lineHeight = getLineHeight(fontSize);
-    // enter key
-    if ('\n' === txt) {
-      x = paddingLeft;
-      y += lineHeight * lineMargin;
-    } else {
-      this.ctx.font = getFont('normal', fontWeight, fontSize, fontFamily);
-      const width = ctx.measureText(txt).width;
-      const lineTop = _point.y + getLineMarginTop(lineHeight, lineMargin);
+    for (const li of lines) {
+      const { segments, tab, baseHeight } = li;
+      const stylSeg = segments[0] as IParagraphNode;
 
-      // 背景色
-      // ctx.fillStyle = this.config.bgColor;
-      // ctx.fillRect(_point.x, lineTop, width, lineHeight);
+      // 首节点是段落节点，增加段顶距，设置段底距
+      if (EnWriteType.PARAGRAPH_STYLE === stylSeg.type) {
+        y += paragraphMarginBottom + stylSeg.marginTop;
+        paragraphMarginBottom = stylSeg.marginBottom;
+      }
 
-      // 写字
-      ctx.fillStyle = this.config.color;
-      ctx.fillText(txt, _point.x, lineTop + fontSize, width);
+      const [baseline, baseBottom] = getBaseline(baseHeight, stylSeg.lineMargin);
+      // 行顶距 + 最大字号 -> baseline
+      y += baseline;
+      const x = pagePaddingLeft + tab;
+      const width = this.usableSize.width - tab;
 
-      x = _point.x + width;
+      for (let item of segments) {
+        if (EnWriteType.FONT_STYLE & item.type) {
+          const { fontWeight, fontSize, fontFamily } = item as IFontStyleNode;
+          this.ctx.font = getFont('normal', fontWeight, fontSize, fontFamily);
+        } else {
+          this.ctx.fillText((item as ITxtNode).txt, x, y, width);
+        }
+      }
+
+      y += baseBottom
     }
-    this._point = { x, y };
+    this._point = { x: pagePaddingLeft, y };
     this.setCaretPoint();
-  }
-
-  protected drawParagraph(p: IParagraphDesc) {
-
   }
   
   resize() {
