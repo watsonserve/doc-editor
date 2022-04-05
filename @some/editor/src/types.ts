@@ -43,7 +43,7 @@ export enum EnWriteType {
   PARAGRAPH_STYLE = 6
 }
 
-export interface ITxtNode { type: EnWriteType.TEXT; txt: string; };
+export interface ITxtNode { type: EnWriteType.TEXT; txt: string; width: number; };
 export interface IParagraphNode extends IParagraphStyle { type: EnWriteType.PARAGRAPH_STYLE };
 export interface IFontStyleNode extends IFontStyle { type: EnWriteType.FONT_STYLE };
 

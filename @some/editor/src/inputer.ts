@@ -95,7 +95,7 @@ export class CaretInputer implements IInputerCtrl {
       case 'insertParagraph':
         str = '\n';
     }
-    console.log(`inputType: ${inputType}, str: ${str}`);
+    // console.log(`inputType: ${inputType}, str: ${str}`);
     this._onInput!(str);
     this.inputElement.innerHTML = '';
   }
@@ -114,7 +114,7 @@ export class CaretInputer implements IInputerCtrl {
   }
 
   private _handleKeyDown(ev: any) {
-    console.log(ev);
+    // console.log(ev);
     switch (ev.keyCode) {
       case 8: // backspace
         this._follow('backspace', '');

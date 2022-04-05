@@ -2,12 +2,10 @@ import { useState } from 'react';
 import { IToolProps } from './types';
 import { fontLevList, fontFamilyList, fontCnSizeDict, lineMarginList } from './constant';
 import ToolBlk from './tool-blk';
-import { getPPI, pt2px, px2pt } from '../../helper/unit';
 import { Selector, Steper } from '@some/ui';
 
 const fontSizeRange = (mm: number) => {
-  const ppi = getPPI();
-  const min = Math.ceil(864 / window.devicePixelRatio / ppi);
+  const min = 5;
   const max = Math.floor(mm * 72 / 25.4);
 
   const foo = [];
@@ -35,7 +33,7 @@ function FontTool(props: IToolProps) {
     props.onChange('fontFamily', family);
   };
 
-  const fontSizeChange = (pt: number) => props.onChange('fontSize', pt2px(pt));
+  const fontSizeChange = (pt: number) => props.onChange('fontSize', pt);
 
   const handleFontSizeL = () => {};
   const handleFontSizeS = () => {};
@@ -55,7 +53,7 @@ function FontTool(props: IToolProps) {
         <Steper
           min={fontSizeList[0].name}
           max={fontSizeList[fontSizeList.length - 1].name}
-          value={px2pt(props.config.fontSize)}
+          value={props.config.fontSize}
           options={fontSizeList}
           onInput={fontSizeChange}
         />

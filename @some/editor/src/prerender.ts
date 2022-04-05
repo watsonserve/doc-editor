@@ -9,22 +9,6 @@ import {
 } from './types';
 import { findStyleNode } from './helper';
 
-function _splice(arr: IDocNode[], seg: number, cnt: number) {
-  const foo = arr.splice(seg);
-
-  if (cnt) {
-    const node = arr[0] as ITxtNode;
-    foo.push({ ...node, txt: node.txt.substring(0, cnt) });
-    node.txt = node.txt.substring(cnt);
-
-    let i = foo.length - 1;
-    const stylNode = findStyleNode(foo);
-    stylNode && arr.unshift(stylNode);
-  }
-
-  return foo;
-}
-
 function _getFontMaxSize(arr: IDocNode[]) {
   let fontSize = 0;
 
@@ -52,15 +36,13 @@ export class PreRender {
    * 计算可以放多少字符
    * @param arr 数据
    * @param width 可用空间
-   * @param scale 缩放倍率
    * @returns [段数, 字数]
    */
-  getLine(arr: IDocNode[], width: number, scale = 1): number[] {
+  getLine(arr: IDocNode[], width: number): number[] {
     const sum = arr.length;
     let segWidth = 0, useWidth = 0, i = 0;
-    width *= scale;
 
-    for (; i < sum && useWidth < width && arr[i]; i++) {
+    for (; i < sum && useWidth < width; i++) {
       const { type, txt, fontWeight, fontSize = 0, fontFamily } = arr[i] as (ITxtNode & IFontStyleNode);
 
       switch (type) {
@@ -71,21 +53,25 @@ export class PreRender {
         case EnWriteType.FONT_STYLE:
           this.ctx.font = getFont(
             'normal',
-            fontWeight * scale,
-            fontSize * scale,
+            fontWeight,
+            fontSize,
             fontFamily
           );
           break;
         case EnWriteType.TEXT:
           segWidth = this.ctx.measureText(txt).width;
           useWidth += segWidth;
+          (arr[i] as ITxtNode).width = segWidth;
           break;
         default:
       }
     }
-    if (!arr[i]) return [i, 0];
+
+    // 数组用尽，处理最后一个节点
+    i -= +(sum <= i);
 
     let subLen = 0;
+
     if (width < useWidth) {
       // 剩余空间
       const space = width + segWidth - useWidth;
@@ -97,27 +83,48 @@ export class PreRender {
       segWidth = this.ctx.measureText(txt.substring(0, subLen)).width;
       // 需要加/减字符
       const sign = Math.sign(space - segWidth);
+      let _sign = sign;
       subLen += sign;
+      i -= +!subLen;
 
-      while (subLen && sign) {
+      // 方向折返
+      while (subLen && sign && sign === _sign) {
         // 子字符串宽度
         segWidth = this.ctx.measureText(txt.substring(0, subLen)).width;
         // 需要加/减字符
-        const _sign = Math.sign(space - segWidth);
-        // 方向折返
-        if (sign !== _sign) break;
+        _sign = Math.sign(space - segWidth);
         // 失去方向不影响subLen
         subLen += _sign;
       };
     }
 
-    if (!subLen) for (; i && EnWriteType.TEXT !== arr[i].type; i--);
-
+    if (!subLen) {
+      // 也许末尾有样式节点，过滤掉
+      for (; i && EnWriteType.TEXT !== arr[i].type; i--);
+      i++;
+    }
     // 返回段数
-    return [i + +(EnWriteType.TEXT === arr[i].type), subLen];
+    return [i, subLen];
   }
 
-  initArticle(arr: IDocNode[], width: number, scale = 1): IRow[] {
+  _splice(arr: IDocNode[], seg: number, cnt: number) {
+    const foo = arr.splice(0, seg);
+
+    if (cnt) {
+      const node = arr[0] as ITxtNode;
+      let txt = node.txt.substring(0, cnt);
+      foo.push({ ...node, txt, width: this.ctx.measureText(txt).width });
+      txt = node.txt.substring(cnt);
+      Object.assign(node, { txt, width: this.ctx.measureText(txt).width });
+
+      const stylNode = findStyleNode(foo);
+      stylNode && arr.unshift(stylNode);
+    }
+
+    return foo;
+  }
+
+  initArticle(arr: IDocNode[], width: number): IRow[] {
     if (!arr.length || EnWriteType.PARAGRAPH_STYLE !== arr[0].type) {
       console.warn('first doc-node is not paragraph-style node');
       return [];
@@ -128,8 +135,8 @@ export class PreRender {
 
     let _tab = firstTab;
     do {
-      const [seg, cnt] = this.getLine(arr, width - _tab, scale);
-      const segments = _splice(arr, seg, cnt);
+      const [seg, cnt] = this.getLine(arr, width - _tab);
+      const segments = this._splice(arr, seg, cnt);
 
       paragraph.push({
         segments,

@@ -8,6 +8,20 @@ import {
   IDocNode
 } from './types';
 
+let _ppi = 0;
+
+export function getPPI(flush = false) {
+  if (!flush && _ppi) return _ppi;
+
+  const foo = document.createElement('div');
+  foo.style.width = '1in';
+  document.body.append(foo);
+  const ppi = foo.clientWidth;
+  foo.remove();
+  _ppi = ppi;
+  return ppi;
+}
+
 export function genId() {
   return (window.crypto as any).randomUUID();
 }
@@ -37,14 +51,6 @@ export function getLineMiddle(lineHeight: number, lineMargin: number) {
 
 export function getFont(style: string, weight: number, size: number, family: string) {
   return `${style} normal ${weight} ${size}px ${family}`;
-}
-
-export function copyAll<T extends {}>(s: T) {
-  const d = {} as T;
-  for (let k in s) {
-    d[k] = s[k];
-  }
-  return d;
 }
 
 function pick<T>(s: T, ks: (keyof T)[]) {

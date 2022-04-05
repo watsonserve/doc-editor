@@ -1,14 +1,12 @@
 import { Suspense, lazy, useRef, useEffect } from 'react';
 import './App.css';
 import EditorView from '@some/editor';
-import { getPPI } from './helper/unit';
 import { Syncer } from './helper/syncer';
 
 const Toolbar = lazy(() => import('./components/toolbar'));
 const Statbar = lazy(() => import('./components/statbar'));
 
 function App() {
-  const dpi = useRef(getPPI());
   const editorApiRef = useRef<any>(null);
   const mainRef = useRef<any>(null);
 

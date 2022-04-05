@@ -23,6 +23,13 @@ export class Collector extends Editor {
   private readonly prerender = new PreRender();
   private doc: IDocNode[] = [];
   private stylIndexer: IStyleNode[] = [];
+  private scaleKeys = new Set([
+    'fontSize',
+    'firstTab',
+    'tab',
+    'marginTop',
+    'marginBottom',
+  ]);
 
   private handleRecv = ({ paragraph, ...payload }: ISyncSeg) => {
     this.doc[paragraph] = payload;
@@ -69,6 +76,17 @@ export class Collector extends Editor {
     this.syncer?.send && this.syncer.send(dataset);
   }
 
+  private translateStyle(s: IStyleNode): IStyleNode {
+    const keys = this.scaleKeys;
+    return Object.keys(s).reduce((p, k) => {
+      const v = (s as any)[k];
+       (p as any)[k] = keys.has(k) ? this.pt2dot(v) : v;
+      return p;
+    }, {
+      __proto__: (s as any).__proto__
+    }) as any;
+  }
+
   private writeStyle(styl: Partial<IFontStyle>) {
     const last = this.doc[this.doc.length - 1];
 
@@ -84,6 +102,7 @@ export class Collector extends Editor {
       __proto__: this.stylIndexer[this.stylIndexer.length - 1],
       type: EnWriteType.FONT_STYLE
     } as IFontStyleNode;
+
     this.doc.push(nextStylNode);
     this.stylIndexer.push(nextStylNode);
   }
@@ -104,7 +123,7 @@ export class Collector extends Editor {
           payload = { type: EnWriteType.TEXT, txt: lastNode.txt, paragraph: seg - 1 };
         } else {
           // 插入新文本节点
-          this.doc.push({ type: EnWriteType.TEXT, txt: str });
+          this.doc.push({ type: EnWriteType.TEXT, txt: str, width: 0 });
           payload = { type: EnWriteType.TEXT, txt: str, paragraph: seg };
         }
       }
@@ -135,16 +154,23 @@ export class Collector extends Editor {
   write({ type, ...params }: { type: EnWriteType, [k: string]: any }) {
     if (EnWriteType.FONT_STYLE === type) {
       this.writeStyle(params);
+      this.setCaretPoint();
     }
 
     if (EnWriteType.TEXT === type) {
       this.writeText(params.txt);
     }
 
-    if (this.todoTimer || !this.doc || this.doc.length < 2) return;
-    const articles = this.prerender.initArticle(this.doc, this.usableSize.width, this.scale);
+    if (!this.doc || this.doc.length < 2) return;
+    // doc使用单倍，article为加倍数据
+    const articles = this.prerender.initArticle(
+      this.doc.map(item => this.translateStyle(item as any)),
+      this.usableSize.width
+    );
+    console.log('articles', { doc: this.doc, articles });
     this.drawParagraph(articles);
 
+    if (this.todoTimer) return;
     this.todoTimer = window.setTimeout(() => {
       clearTimeout(this.todoTimer);
       this.todoTimer = 0;
