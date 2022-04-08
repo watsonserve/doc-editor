@@ -46,10 +46,9 @@ export class PreRender {
       const { type, txt, fontWeight, fontSize = 0, fontFamily } = arr[i] as (ITxtNode & IFontStyleNode);
 
       switch (type) {
-        // eslint-disable-next-line
+        // @ts-ignore
         case EnWriteType.PARAGRAPH_STYLE:
           if (i || !i && i === sum) return [i, 0];
-          // tslint-disable-next-line
         case EnWriteType.FONT_STYLE:
           this.ctx.font = getFont(
             'normal',
@@ -68,7 +67,7 @@ export class PreRender {
     }
 
     // 数组用尽，处理最后一个节点
-    i -= +(sum <= i);
+    i -= +(sum <= i || EnWriteType.TEXT !== arr[i].type);
 
     let subLen = 0;
 
