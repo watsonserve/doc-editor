@@ -91,11 +91,11 @@ export class Collector extends Editor {
     });
   }
 
-  private cloneNodeLink(doc: IDocNode[]) {
+  private cloneNodeLink(link: IDocNode[]) {
     let stylNode = null;
     const retLink = [];
-    for (let i = 0; i < doc.length; i++) {
-      const item = { ...doc[i] } as IStyleNode;
+    for (let i = 0; i < link.length; i++) {
+      const item = { ...link[i] } as IStyleNode;
       retLink.push(item);
       if (!(EnWriteType.FONT_STYLE & item.type)) continue;
 
@@ -183,6 +183,16 @@ export class Collector extends Editor {
     }
   }
 
+  protected redraw() {
+    // doc使用单倍，article为加倍数据
+    const articles = this.prerender.initArticle(
+      this.cloneNodeLink(this.doc),
+      this.usableSize.width
+    );
+    console.log('articles', { doc: this.doc, articles });
+    this.draw(articles);
+  }
+
   write({ type, ...params }: { type: EnWriteType, [k: string]: any }) {
     if (EnWriteType.FONT_STYLE === type) {
       this.writeStyle(params);
@@ -196,13 +206,8 @@ export class Collector extends Editor {
       this.setCaretPoint();
       return;
     }
-    // doc使用单倍，article为加倍数据
-    const articles = this.prerender.initArticle(
-      this.cloneNodeLink(this.doc),
-      this.usableSize.width
-    );
-    console.log('articles', { doc: this.doc, articles });
-    this.drawParagraph(articles);
+
+    this.redraw();
 
     if (this.todoTimer) return;
     this.todoTimer = window.setTimeout(() => {
@@ -211,6 +216,4 @@ export class Collector extends Editor {
       this.save();
     }, 300);
   }
-
-  redraw() {}
 }

@@ -37,8 +37,8 @@ export abstract class Editor {
   };
   private _pagePadding: IBlockSize = { top: 20, right: 20, bottom: 20, left: 20 };
   private _onCaretMove?: (p: IPoint) => void;
-  abstract redraw(): void;
   private article: IRow[] = [];
+  protected abstract redraw(): void;
 
   constructor() {
     this.elCanvas.setAttribute('class', 'editor__canvas');
@@ -85,16 +85,6 @@ export abstract class Editor {
 
   get canvas() {
     return this.elCanvas;
-  }
-
-  get point() {
-    const { x, y } = this._point;
-
-    return {
-      x: this.dot2pt(x),
-      y: this.dot2pt(y),
-      height: this.dot2pt(this.config.fontSize / 2 * 3)
-    };
   }
 
   get pagePadding() {
@@ -191,8 +181,8 @@ export abstract class Editor {
     this._onCaretMove = fn;
   }
 
-  protected drawParagraph(lines: IRow[]) {
-    this.article = lines;
+  private drawParagraph() {
+    const lines = this.article;
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
     const pagePaddingLeft = this._pagePadding.left;
     let x = pagePaddingLeft;
@@ -241,6 +231,11 @@ export abstract class Editor {
     this._point = { x, y };
     console.log('this._point', this._point);
     this.setCaretPoint();
+  }
+
+  protected draw(lines: IRow[]) {
+    this.article = lines;
+    this.drawParagraph();
   }
   
   resize() {
