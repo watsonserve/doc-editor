@@ -124,7 +124,9 @@ export class PreRender {
   }
 
   initArticle(arr: IDocNode[], width: number): IRow[] {
-    if (!arr.length || EnWriteType.PARAGRAPH_STYLE !== arr[0].type) {
+    if (!arr.length) return [];
+
+    if (EnWriteType.PARAGRAPH_STYLE !== arr[0].type) {
       console.warn('first doc-node is not paragraph-style node');
       return [];
     };
@@ -133,6 +135,14 @@ export class PreRender {
     const paragraph = [];
 
     let _tab = firstTab;
+    if (arr.length < 2) {
+      return [{
+        segments: arr,
+        tab: _tab,
+        baseHeight: arr[0].fontSize
+      }];
+    }
+
     do {
       const [seg, cnt] = this.getLine(arr, width - _tab);
       const segments = this._splice(arr, seg, cnt);

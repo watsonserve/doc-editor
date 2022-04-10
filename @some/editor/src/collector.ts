@@ -202,11 +202,6 @@ export class Collector extends Editor {
       this.writeText(params.txt);
     }
 
-    if (!this.doc || this.doc.length < 2) {
-      this.setCaretPoint();
-      return;
-    }
-
     this.redraw();
 
     if (this.todoTimer) return;
