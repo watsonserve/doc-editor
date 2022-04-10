@@ -23,10 +23,15 @@ export class Collector extends Editor {
   private readonly prerender = new PreRender();
   private doc: IDocNode[] = [];
   private stylIndexer: IStyleNode[] = [];
-  private scaleKeys = new Set([
+  private static readonly scaleKeys = new Set([
     'fontSize',
     'firstTab',
     'tab',
+    'marginTop',
+    'marginBottom',
+  ]);
+  private static readonly paragraphKeys = new Set([
+    'lineMargin',
     'marginTop',
     'marginBottom',
   ]);
@@ -76,18 +81,31 @@ export class Collector extends Editor {
     this.syncer?.send && this.syncer.send(dataset);
   }
 
-  private translateStyle(s: IStyleNode): IStyleNode {
-    const keys = this.scaleKeys;
-    return Object.keys(s).reduce((p, k) => {
+  private translateStyle(s: IStyleNode) {
+    const keys = Collector.scaleKeys;
+    Object.keys(s).forEach(k => {
       const v = (s as any)[k];
-       (p as any)[k] = keys.has(k) ? this.pt2dot(v) : v;
-      return p;
-    }, {
-      __proto__: (s as any).__proto__
-    }) as any;
+      (s as any)[k] = keys.has(k) ? this.pt2dot(v) : v;
+    });
+  }
+
+  private cloneNodeLink(doc: IDocNode[]) {
+    let stylNode = null;
+    const retLink = [];
+    for (let i = 0; i < doc.length; i++) {
+      const item = { ...doc[i] } as IStyleNode;
+      retLink.push(item);
+      if (!(EnWriteType.FONT_STYLE & item.type)) continue;
+
+      this.translateStyle(item);
+      (item as any).__proto__ = stylNode;
+      stylNode = item;
+    }
+    return retLink;
   }
 
   private writeStyle(styl: Partial<IFontStyle>) {
+    // Object.keys(styl).filter(k => Collector.paragraphKeys.has(k));
     const last = this.doc[this.doc.length - 1];
 
     // 前序节点为样式节点
@@ -164,7 +182,7 @@ export class Collector extends Editor {
     if (!this.doc || this.doc.length < 2) return;
     // doc使用单倍，article为加倍数据
     const articles = this.prerender.initArticle(
-      this.doc.map(item => this.translateStyle(item as any)),
+      this.cloneNodeLink(this.doc),
       this.usableSize.width
     );
     console.log('articles', { doc: this.doc, articles });
