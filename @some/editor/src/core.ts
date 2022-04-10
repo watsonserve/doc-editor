@@ -1,5 +1,5 @@
 import { getPPI, getLineHeight, getLineMarginHalf, getBaseline, getLineMiddle, getFont } from './helper';
-import { EnWriteType, IBlockSize, IFontStyleNode, IParagraphNode, IRow, ITxtNode } from './types';
+import { EnWriteType, IBlockSize, IFontStyleNode, IParagraphNode, IRow, IStyleNode, ITxtNode } from './types';
 
 export interface IPoint {
   x: number;
@@ -38,6 +38,7 @@ export abstract class Editor {
   private _pagePadding: IBlockSize = { top: 20, right: 20, bottom: 20, left: 20 };
   private _onCaretMove?: (p: IPoint) => void;
   abstract redraw(): void;
+  private article: IRow[] = [];
 
   constructor() {
     this.elCanvas.setAttribute('class', 'editor__canvas');
@@ -106,7 +107,7 @@ export abstract class Editor {
     };
   }
 
-  get usableSize() {
+  protected get usableSize() {
     const { width, height } = this.elCanvas;
     const { top, right, bottom, left } = this._pagePadding;
 
@@ -146,13 +147,28 @@ export abstract class Editor {
   }
 
   set point(p: IPoint) {
-    const { width: pageWidth } = this.elCanvas;
-    const { top: paddingTop, right: paddingRight, left: paddingLeft } = this._pagePadding;
-    const halfLineHeight = getLineMiddle(getLineHeight(this.config.fontSize), this.config.lineMargin);
-    const x = Math.max(paddingLeft, Math.min(pageWidth - paddingRight, this.px2dot(p.x)));
-    // 点击点应该是行的中间高度
-    const y = Math.max(paddingTop, Math.min(this._point.y, this.px2dot(p.y) - halfLineHeight));
-    this._point = { x, y };
+    const { width: pageWidth, height: pageHeight } = this.elCanvas;
+    const { top: paddingTop, right: paddingRight, bottom: paddingBottom, left: paddingLeft } = this._pagePadding;
+    const article = this.article;
+    let x = this.px2dot(p.x);
+    let y = this.px2dot(p.y);
+
+    // 可用空间之外
+    if (x < paddingLeft || pageWidth - paddingRight < x || y < paddingTop || pageHeight - paddingBottom < y) return;
+
+    let offsetTop = paddingTop;
+    // 行号
+    let rowNo = 0;
+
+    for (; rowNo < article.length - 1; rowNo++) {
+      const row = article[rowNo];
+      const rowHeight = row.baseHeight * (row.segments[0] as IParagraphNode).lineMargin;
+      const nxtOffsetTop = offsetTop + rowHeight;
+      if (y < nxtOffsetTop) break;
+      offsetTop = nxtOffsetTop;
+    }
+
+    this._point = { x, y: offsetTop };
     const timer = setTimeout(() => {
       clearTimeout(timer);
       this.setCaretPoint();
@@ -176,6 +192,7 @@ export abstract class Editor {
   }
 
   protected drawParagraph(lines: IRow[]) {
+    this.article = lines;
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
     const pagePaddingLeft = this._pagePadding.left;
     let x = pagePaddingLeft;
