@@ -31,10 +31,6 @@ export abstract class Editor {
     color: '#333',
     bgColor: 'transparent'
   };
-  private _point = {
-    x: 0,
-    y: 0
-  };
   private _pagePadding: IBlockSize = { top: 20, right: 20, bottom: 20, left: 20 };
   private _onCaretMove?: (p: IPoint) => void;
   private article: IRow[] = [];
@@ -107,20 +103,6 @@ export abstract class Editor {
     };
   }
 
-  protected set fontFamily(fontFamily: string) {
-    this.config.fontFamily = fontFamily;
-  }
-
-  protected set fontSize(s: number) {
-    this.config.fontSize = this.pt2dot(s);
-    this.setCaretPoint();
-  }
-
-  protected set lineMargin(h: number) {
-    this.config.lineMargin = Math.max(1, h);
-    this.setCaretPoint();
-  }
-
   set pagePadding(padding: IBlockSize) {
     const { top, right, bottom, left } = padding;
     this._pagePadding = {
@@ -149,31 +131,31 @@ export abstract class Editor {
     let offsetTop = paddingTop;
     // 行号
     let rowNo = 0;
+    let row = article[rowNo];
+    let lineMargin = (row.segments[0] as IParagraphNode).lineMargin;
 
     for (; rowNo < article.length - 1; rowNo++) {
-      const row = article[rowNo];
-      const rowHeight = row.baseHeight * (row.segments[0] as IParagraphNode).lineMargin;
+      row = article[rowNo];
+      lineMargin = (row.segments[0] as IParagraphNode).lineMargin;
+      const rowHeight = getLineHeight(row.baseHeight) * lineMargin;
       const nxtOffsetTop = offsetTop + rowHeight;
       if (y < nxtOffsetTop) break;
       offsetTop = nxtOffsetTop;
     }
 
-    this._point = { x, y: offsetTop };
     const timer = setTimeout(() => {
       clearTimeout(timer);
-      this.setCaretPoint();
+      this.setCaretPoint(x, offsetTop, row.baseHeight, lineMargin);
     }, 0);
   }
 
-  protected setCaretPoint() {
-    const { fontSize, lineMargin } = this.config;
-    const lineHeight = getLineHeight(fontSize);
+  protected setCaretPoint(x: number, y: number, baseHeight: number, lineMargin: number) {
+    const lineHeight = getLineHeight(baseHeight);
     const p = {
-      x: this.dot2px(this._point.x),
-      y: this.dot2px(this._point.y + getLineMarginHalf(lineHeight, lineMargin)),
+      x: this.dot2px(x),
+      y: this.dot2px(y + getLineMarginHalf(lineHeight, lineMargin)),
       height: this.dot2px(lineHeight)
     };
-    console.log('_onCaretMove', p);
     this._onCaretMove!(p);
   }
 
@@ -181,56 +163,60 @@ export abstract class Editor {
     this._onCaretMove = fn;
   }
 
+  private drawRow(row: IRow, x: number, y: number) {
+    const { segments, tab, baseHeight } = row;
+    const stylSeg = segments[0] as IParagraphNode;
+
+    const [baseline, baseBottom] = getBaseline(baseHeight, stylSeg.lineMargin);
+    const _base = y + baseline;
+    x += tab;
+    const width = this.usableSize.width - tab;
+
+    for (let item of segments) {
+      if (EnWriteType.FONT_STYLE & item.type) {
+        const { fontWeight, fontFamily } = item as IFontStyleNode;
+        const fontSize = (item as IFontStyleNode).fontSize;
+        const font = getFont('normal', fontWeight, fontSize, fontFamily);
+        if (font.match(/undefined|NaN| $/)) console.warn('getFont', font);
+        this.ctx.font = font;
+        Object.assign(this.config, { fontFamily, fontSize, fontWeight, lineMargin: stylSeg.lineMargin });
+      } else {
+        const { txt, width: segWdith } = item as ITxtNode;
+        this.ctx.fillText(txt, x, _base, width);
+        x += segWdith;
+      }
+    }
+
+    return [x, baseline + baseBottom];
+  }
+
   private drawParagraph() {
     const lines = this.article;
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
     const pagePaddingLeft = this._pagePadding.left;
-    let x = pagePaddingLeft;
     let y = this._pagePadding.top;
     let paragraphMarginBottom = 0;
     let lineAllHeight = 0;
+    let x = pagePaddingLeft;
     this.ctx.clearRect(0, 0, pageWidth, pageHeight);
 
-    this.ctx.fillStyle = '#ccc';
-    this.ctx.fillRect(x, y, this.usableSize.width, this.usableSize.height);
+    // this.ctx.fillStyle = '#ccc';
+    // this.ctx.fillRect(x, y, this.usableSize.width, this.usableSize.height);
     this.ctx.fillStyle = '#333';
 
-    for (const li of lines) {
-      const { segments, tab, baseHeight } = li;
-      const stylSeg = segments[0] as IParagraphNode;
-
+    for (const row of lines) {
+      const stylSeg = row.segments[0];
       // 首节点是段落节点，增加段顶距，设置段底距
-      if (EnWriteType.PARAGRAPH_STYLE === stylSeg.type) {
+      if (stylSeg.type === EnWriteType.PARAGRAPH_STYLE) {
         y += paragraphMarginBottom + stylSeg.marginTop;
         paragraphMarginBottom = stylSeg.marginBottom;
       }
       y += lineAllHeight;
-
-      const [baseline, baseBottom] = getBaseline(baseHeight, stylSeg.lineMargin);
-      const _base = y + baseline;
-      // console.log({ baseline, baseBottom, _base, y });
-      lineAllHeight = baseline + baseBottom;
-      x = pagePaddingLeft + tab;
-      const width = this.usableSize.width - tab;
-
-      for (let item of segments) {
-        if (EnWriteType.FONT_STYLE & item.type) {
-          const { fontWeight, fontFamily } = item as IFontStyleNode;
-          const fontSize = (item as IFontStyleNode).fontSize;
-          const font = getFont('normal', fontWeight, fontSize, fontFamily);
-          if (font.match(/undefined|NaN| $/)) console.warn('getFont', font);
-          this.ctx.font = font;
-          Object.assign(this.config, { fontFamily, fontSize, fontWeight, lineMargin: stylSeg.lineMargin });
-        } else {
-          const { txt, width: segWdith } = item as ITxtNode;
-          this.ctx.fillText(txt, x, _base, width);
-          x += segWdith;
-        }
-      }
+      [x, lineAllHeight] = this.drawRow(row, pagePaddingLeft, y);
     }
-    this._point = { x, y };
-    console.log('this._point', this._point);
-    this.setCaretPoint();
+
+    const { baseHeight, segments } = lines[lines.length - 1];
+    this.setCaretPoint(x, y, baseHeight, (segments[0] as IParagraphNode).lineMargin);
   }
 
   protected draw(lines: IRow[]) {
