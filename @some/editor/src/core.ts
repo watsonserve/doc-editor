@@ -16,16 +16,6 @@ const { dot2pt, pt2dot, px2dot, dot2px } = Scaler.instance;
 export abstract class Editor {
   private readonly elCanvas = document.createElement('canvas');
   private ctx: CanvasRenderingContext2D;
-  // 这里存储canvas使用的坐标，向外暴露的是单倍坐标值
-  private config = {
-    fontSize: 32,
-    fontFamily: 'serif',
-    fontWeight: 400,
-    fontStyle: 0,
-    lineMargin: 1,
-    color: '#333',
-    bgColor: 'transparent'
-  };
   private _pagePadding: IBlockSize = { top: 20, right: 20, bottom: 20, left: 20 };
   private _onCaretMove?: (p: IPoint) => void;
   private article: IRow[] = [];
@@ -44,18 +34,6 @@ export abstract class Editor {
     console.warn('on editor destroy');
     this.elCanvas.removeEventListener('resize', this.resize);
     document.removeChild(this.elCanvas);
-  }
-
-  get fontSize() {
-    return dot2pt(this.config.fontSize);
-  }
-
-  get lineMargin() {
-    return this.config.lineMargin;
-  }
-
-  get bgColor() {
-    return this.config.bgColor;
   }
 
   get canvas() {
@@ -92,10 +70,6 @@ export abstract class Editor {
       left: pt2dot(left),
     };
     this.redraw();
-  }
-
-  protected set bgColor(c: string) {
-    this.config.bgColor = c;
   }
 
   set point(p: IPoint) {
@@ -159,7 +133,6 @@ export abstract class Editor {
         const font = getFont('normal', fontWeight, fontSize, fontFamily);
         if (font.match(/undefined|NaN| $/)) console.warn('getFont', font);
         this.ctx.font = font;
-        Object.assign(this.config, { fontFamily, fontSize, fontWeight, lineMargin: stylSeg.lineMargin });
       } else {
         const { txt, width: segWdith } = item as ITxtNode;
         this.ctx.fillText(txt, x, _base, width);
@@ -170,7 +143,7 @@ export abstract class Editor {
     return [x, baseline + baseBottom];
   }
 
-  private drawParagraph() {
+  private drawArticle() {
     const lines = this.article;
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
     const pagePaddingLeft = this._pagePadding.left;
@@ -180,7 +153,7 @@ export abstract class Editor {
     let x = pagePaddingLeft;
     this.ctx.clearRect(0, 0, pageWidth, pageHeight);
 
-    // this.ctx.fillStyle = '#ccc';
+    // this.ctx.fillStyle = '#eee';
     // this.ctx.fillRect(x, y, this.usableSize.width, this.usableSize.height);
     this.ctx.fillStyle = '#333';
 
@@ -201,7 +174,7 @@ export abstract class Editor {
 
   protected draw(lines: IRow[]) {
     this.article = lines;
-    this.drawParagraph();
+    this.drawArticle();
   }
   
   resize() {

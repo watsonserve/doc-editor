@@ -15,6 +15,42 @@ import { partial, Scaler } from './helper';
 type ISyncSeg = IDocNode & { paragraph: number };
 const { pt2dot } = Scaler.instance;
 
+const scaleKeys = new Set([
+  'fontSize',
+  'firstTab',
+  'tab',
+  'marginTop',
+  'marginBottom',
+]);
+
+const paragraphKeys = new Set([
+  'lineMargin',
+  'marginTop',
+  'marginBottom',
+]);
+
+function translateStyle(s: IStyleNode) {
+  Object.keys(s).forEach(k => {
+    const v = (s as any)[k];
+    (s as any)[k] = scaleKeys.has(k) ? pt2dot(v) : v;
+  });
+}
+
+function cloneNodeLink(link: IDocNode[]) {
+  let stylNode = null;
+  const retLink = [];
+  for (let i = 0; i < link.length; i++) {
+    const item = { ...link[i] } as IStyleNode;
+    retLink.push(item);
+    if (!(EnWriteType.FONT_STYLE & item.type)) continue;
+
+    translateStyle(item);
+    (item as any).__proto__ = stylNode;
+    stylNode = item;
+  }
+  return retLink;
+}
+
 export interface ISyncer extends EventEmitter {
   send: (data: ISyncSeg[])=> void;
 }
@@ -26,18 +62,6 @@ export class Collector extends Editor {
   private readonly prerender = new PreRender();
   private doc: IDocNode[] = [];
   private stylIndexer: IStyleNode[] = [];
-  private static readonly scaleKeys = new Set([
-    'fontSize',
-    'firstTab',
-    'tab',
-    'marginTop',
-    'marginBottom',
-  ]);
-  private static readonly paragraphKeys = new Set([
-    'lineMargin',
-    'marginTop',
-    'marginBottom',
-  ]);
 
   private handleRecv = ({ paragraph, ...payload }: ISyncSeg) => {
     this.doc[paragraph] = payload;
@@ -61,7 +85,7 @@ export class Collector extends Editor {
 
   destroy() {
     this.syncer?.removeListener('recv', this.handleRecv);
-    this.save();
+    this._save();
     this.syncer = undefined;
     clearTimeout(this.todoTimer);
     this.todoTimer = 0;
@@ -77,34 +101,11 @@ export class Collector extends Editor {
     this.syncer.addListener('recv', this.handleRecv);
   }
 
-  private save() {
+  private _save() {
     const dataset = this.cache;
     if (!dataset.length) return;
     this.cache = [];
     this.syncer?.send && this.syncer.send(dataset);
-  }
-
-  private translateStyle(s: IStyleNode) {
-    const keys = Collector.scaleKeys;
-    Object.keys(s).forEach(k => {
-      const v = (s as any)[k];
-      (s as any)[k] = keys.has(k) ? pt2dot(v) : v;
-    });
-  }
-
-  private cloneNodeLink(link: IDocNode[]) {
-    let stylNode = null;
-    const retLink = [];
-    for (let i = 0; i < link.length; i++) {
-      const item = { ...link[i] } as IStyleNode;
-      retLink.push(item);
-      if (!(EnWriteType.FONT_STYLE & item.type)) continue;
-
-      this.translateStyle(item);
-      (item as any).__proto__ = stylNode;
-      stylNode = item;
-    }
-    return retLink;
   }
 
   private _setStyleNode(styl: Partial<IFontStyle>) {
@@ -132,15 +133,15 @@ export class Collector extends Editor {
     Object.assign(this.stylIndexer[i], styl);
   }
 
-  private writeStyle(styl: Partial<IFontStyle>) {
-    const paragraphStyles = partial(styl, Collector.paragraphKeys) as Partial<IParagraphStyle>;
+  private _writeStyle(styl: Partial<IFontStyle>) {
+    const paragraphStyles = partial(styl, paragraphKeys) as Partial<IParagraphStyle>;
 
     if (Object.keys(paragraphStyles)) this._setparagraphNode(paragraphStyles);
 
     if (Object.keys(styl).length) this._setStyleNode(styl);
   }
 
-  private writeText(txt: string) {
+  private _writeText(txt: string) {
     const list = txt.split('\n');
     for (let idx = 0; idx < list.length; idx++) {
       let str = list[idx];
@@ -187,7 +188,7 @@ export class Collector extends Editor {
   protected redraw() {
     // doc使用单倍，article为加倍数据
     const articles = this.prerender.initArticle(
-      this.cloneNodeLink(this.doc),
+      cloneNodeLink(this.doc),
       this.usableSize.width
     );
     console.log('articles', { doc: this.doc, articles });
@@ -196,11 +197,11 @@ export class Collector extends Editor {
 
   write({ type, ...params }: { type: EnWriteType, [k: string]: any }) {
     if (EnWriteType.FONT_STYLE === type) {
-      this.writeStyle(params);
+      this._writeStyle(params);
     }
 
     if (EnWriteType.TEXT === type) {
-      this.writeText(params.txt);
+      this._writeText(params.txt);
     }
 
     this.redraw();
@@ -209,7 +210,7 @@ export class Collector extends Editor {
     this.todoTimer = window.setTimeout(() => {
       clearTimeout(this.todoTimer);
       this.todoTimer = 0;
-      this.save();
+      this._save();
     }, 300);
   }
 }
