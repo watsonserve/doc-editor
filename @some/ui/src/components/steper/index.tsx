@@ -5,7 +5,7 @@ import { useDownOptions } from '../../helper/hook';
 import { ISteperProps, INameTitle } from '../../types';
 import './index.css';
 
-export default function(props: ISteperProps) {
+export default function Steper(props: ISteperProps) {
   const [num, setNum] = useState(props.value.toString());
   const [showOpts, setShowOpts] = useState(0);
   const selfRef = useRef(null);

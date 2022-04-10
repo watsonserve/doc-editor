@@ -10,9 +10,10 @@ import {
   IParagraphNode,
   IParagraphStyle
 } from './types';
-import { partial } from './helper';
+import { partial, Scaler } from './helper';
 
 type ISyncSeg = IDocNode & { paragraph: number };
+const { pt2dot } = Scaler.instance;
 
 export interface ISyncer extends EventEmitter {
   send: (data: ISyncSeg[])=> void;
@@ -87,7 +88,7 @@ export class Collector extends Editor {
     const keys = Collector.scaleKeys;
     Object.keys(s).forEach(k => {
       const v = (s as any)[k];
-      (s as any)[k] = keys.has(k) ? this.pt2dot(v) : v;
+      (s as any)[k] = keys.has(k) ? pt2dot(v) : v;
     });
   }
 

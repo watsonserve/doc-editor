@@ -22,6 +22,24 @@ export function getPPI(flush = false) {
   return ppi;
 }
 
+export class Scaler {
+  private dpi = 300;
+  private ppi = getPPI();
+  private static readonly _instance = new Scaler();
+
+  static get instance() {
+    return Scaler._instance;
+  }
+
+  px2dot = (px: number) => px * this.dpi / this.ppi;
+
+  dot2px = (dot: number) => dot * this.ppi /this.dpi;
+
+  pt2dot = (dot: number) => dot * this.dpi / 72;
+
+  dot2pt = (dot: number) => dot * 72 / this.dpi;
+}
+
 export function genId() {
   return (window.crypto as any).randomUUID();
 }

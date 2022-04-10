@@ -1,5 +1,5 @@
-import { getPPI, getLineHeight, getLineMarginHalf, getBaseline, getLineMiddle, getFont } from './helper';
-import { EnWriteType, IBlockSize, IFontStyleNode, IParagraphNode, IRow, IStyleNode, ITxtNode } from './types';
+import { Scaler, getLineHeight, getLineMarginHalf, getBaseline, getFont } from './helper';
+import { EnWriteType, IBlockSize, IFontStyleNode, IParagraphNode, IRow, ITxtNode } from './types';
 
 export interface IPoint {
   x: number;
@@ -8,10 +8,7 @@ export interface IPoint {
   height?: number;
 }
 
-interface IChange {
-  txt: string;
-  paragraph: number;
-};
+const { dot2pt, pt2dot, px2dot, dot2px } = Scaler.instance;
 
 /**
  * unit: dot
@@ -19,8 +16,6 @@ interface IChange {
 export abstract class Editor {
   private readonly elCanvas = document.createElement('canvas');
   private ctx: CanvasRenderingContext2D;
-  private dpi = 300;
-  private ppi = getPPI();
   // 这里存储canvas使用的坐标，向外暴露的是单倍坐标值
   private config = {
     fontSize: 32,
@@ -51,24 +46,8 @@ export abstract class Editor {
     document.removeChild(this.elCanvas);
   }
 
-  px2dot(px: number) {
-    return px * this.dpi / this.ppi;
-  }
-
-  dot2px(dot: number) {
-    return dot * this.ppi /this.dpi;
-  }
-
-  pt2dot(dot: number) {
-    return dot * this.dpi / 72;
-  }
-
-  dot2pt(dot: number) {
-    return dot * 72 / this.dpi;
-  }
-
   get fontSize() {
-    return this.dot2pt(this.config.fontSize);
+    return dot2pt(this.config.fontSize);
   }
 
   get lineMargin() {
@@ -86,10 +65,10 @@ export abstract class Editor {
   get pagePadding() {
     const { top, right, bottom, left } = this._pagePadding;
     return {
-      top: this.dot2pt(top),
-      right: this.dot2pt(right),
-      bottom: this.dot2pt(bottom),
-      left: this.dot2pt(left),
+      top: dot2pt(top),
+      right: dot2pt(right),
+      bottom: dot2pt(bottom),
+      left: dot2pt(left),
     };
   }
 
@@ -105,11 +84,12 @@ export abstract class Editor {
 
   set pagePadding(padding: IBlockSize) {
     const { top, right, bottom, left } = padding;
+
     this._pagePadding = {
-      top: this.pt2dot(top),
-      right: this.pt2dot(right),
-      bottom: this.pt2dot(bottom),
-      left: this.pt2dot(left),
+      top: pt2dot(top),
+      right: pt2dot(right),
+      bottom: pt2dot(bottom),
+      left: pt2dot(left),
     };
     this.redraw();
   }
@@ -122,8 +102,8 @@ export abstract class Editor {
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
     const { top: paddingTop, right: paddingRight, bottom: paddingBottom, left: paddingLeft } = this._pagePadding;
     const article = this.article;
-    let x = this.px2dot(p.x);
-    let y = this.px2dot(p.y);
+    let x = px2dot(p.x);
+    let y = px2dot(p.y);
 
     // 可用空间之外
     if (x < paddingLeft || pageWidth - paddingRight < x || y < paddingTop || pageHeight - paddingBottom < y) return;
@@ -152,9 +132,9 @@ export abstract class Editor {
   protected setCaretPoint(x: number, y: number, baseHeight: number, lineMargin: number) {
     const lineHeight = getLineHeight(baseHeight);
     const p = {
-      x: this.dot2px(x),
-      y: this.dot2px(y + getLineMarginHalf(lineHeight, lineMargin)),
-      height: this.dot2px(lineHeight)
+      x: dot2px(x),
+      y: dot2px(y + getLineMarginHalf(lineHeight, lineMargin)),
+      height: dot2px(lineHeight)
     };
     this._onCaretMove!(p);
   }
@@ -228,8 +208,8 @@ export abstract class Editor {
     let changed = false;
     const { elCanvas } = this;
 
-    const dotWidth = this.px2dot(elCanvas?.clientWidth || 0);
-    const dotHeight = this.px2dot(elCanvas?.clientHeight || 0);
+    const dotWidth = px2dot(elCanvas?.clientWidth || 0);
+    const dotHeight = px2dot(elCanvas?.clientHeight || 0);
 
     if (dotWidth !== elCanvas.width) {
       elCanvas.width = dotWidth;
