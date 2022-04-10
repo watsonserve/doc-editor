@@ -7,8 +7,10 @@ import {
   IDocNode,
   IStyleNode,
   IFontStyleNode,
-  IParagraphNode
+  IParagraphNode,
+  IParagraphStyle
 } from './types';
+import { partial } from './helper';
 
 type ISyncSeg = IDocNode & { paragraph: number };
 
@@ -104,10 +106,8 @@ export class Collector extends Editor {
     return retLink;
   }
 
-  private writeStyle(styl: Partial<IFontStyle>) {
-    // Object.keys(styl).filter(k => Collector.paragraphKeys.has(k));
+  private _setStyleNode(styl: Partial<IFontStyle>) {
     const last = this.doc[this.doc.length - 1];
-
     // 前序节点为样式节点
     if (EnWriteType.FONT_STYLE & last.type) {
       Object.assign(last, styl);
@@ -123,6 +123,20 @@ export class Collector extends Editor {
 
     this.doc.push(nextStylNode);
     this.stylIndexer.push(nextStylNode);
+  }
+
+  private _setparagraphNode(styl: Partial<IParagraphStyle>) {
+    let i = this.stylIndexer.length - 1;
+    for(; 0 < i && this.stylIndexer[i].type !== EnWriteType.PARAGRAPH_STYLE; i--);
+    Object.assign(this.stylIndexer[i], styl);
+  }
+
+  private writeStyle(styl: Partial<IFontStyle>) {
+    const paragraphStyles = partial(styl, Collector.paragraphKeys) as Partial<IParagraphStyle>;
+
+    if (Object.keys(paragraphStyles)) this._setparagraphNode(paragraphStyles);
+
+    if (Object.keys(styl).length) this._setStyleNode(styl);
   }
 
   private writeText(txt: string) {
@@ -172,14 +186,16 @@ export class Collector extends Editor {
   write({ type, ...params }: { type: EnWriteType, [k: string]: any }) {
     if (EnWriteType.FONT_STYLE === type) {
       this.writeStyle(params);
-      this.setCaretPoint();
     }
 
     if (EnWriteType.TEXT === type) {
       this.writeText(params.txt);
     }
 
-    if (!this.doc || this.doc.length < 2) return;
+    if (!this.doc || this.doc.length < 2) {
+      this.setCaretPoint();
+      return;
+    }
     // doc使用单倍，article为加倍数据
     const articles = this.prerender.initArticle(
       this.cloneNodeLink(this.doc),

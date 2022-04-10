@@ -91,3 +91,13 @@ export function getParagraphNode(arr: IDocNode[]): IParagraphNode | undefined {
     type: EnWriteType.PARAGRAPH_STYLE
   };
 }
+
+export function partial(s: Record<string, any>, keys: Set<string>) {
+  return Object.keys(s).reduce((pre, k) => {
+    if (keys.has(k)) {
+      pre[k] = s[k];
+      delete s[k];
+    }
+    return pre;
+  }, {} as Record<string, any>);
+}
