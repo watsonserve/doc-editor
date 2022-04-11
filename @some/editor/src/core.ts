@@ -1,5 +1,6 @@
 import { Scaler, getLineHeight, getLineMarginHalf, getBaseline, getFont } from './helper';
 import { EnWriteType, IBlockSize, IFontStyleNode, IParagraphNode, IRow, ITxtNode } from './types';
+import { PreRender } from './prerender';
 
 export interface IPoint {
   x: number;
@@ -19,6 +20,7 @@ export abstract class Editor {
   private _pagePadding: IBlockSize = { top: 20, right: 20, bottom: 20, left: 20 };
   private _onCaretMove?: (p: IPoint) => void;
   private article: IRow[] = [];
+  protected readonly prerender = new PreRender();
   protected abstract redraw(): void;
 
   constructor() {
@@ -72,37 +74,58 @@ export abstract class Editor {
     this.redraw();
   }
 
+  /**
+   * 设定当前光标位置
+   * @param 点击坐标
+   */
   set point(p: IPoint) {
+    // 页的宽高
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
+    // 页边距
     const { top: paddingTop, right: paddingRight, bottom: paddingBottom, left: paddingLeft } = this._pagePadding;
+    // 文档描述数据
     const article = this.article;
+    // 转换单位
     let x = px2dot(p.x);
     let y = px2dot(p.y);
 
-    // 可用空间之外
+    // 点击可用空间之外
     if (x < paddingLeft || pageWidth - paddingRight < x || y < paddingTop || pageHeight - paddingBottom < y) return;
 
     let offsetTop = paddingTop;
     // 行号
     let rowNo = 0;
-    let row = article[rowNo];
-    let lineMargin = (row.segments[0] as IParagraphNode).lineMargin;
 
+    // 寻找所在行
     for (; rowNo < article.length - 1; rowNo++) {
-      row = article[rowNo];
-      lineMargin = (row.segments[0] as IParagraphNode).lineMargin;
+      const row = article[rowNo];
+      const lineMargin = (row.segments[0] as IParagraphNode).lineMargin;
       const rowHeight = getLineHeight(row.baseHeight) * lineMargin;
       const nxtOffsetTop = offsetTop + rowHeight;
       if (y < nxtOffsetTop) break;
       offsetTop = nxtOffsetTop;
     }
 
+    const row = article[rowNo];
+    const lineMargin = (row.segments[0] as IParagraphNode).lineMargin;
+    
+    // 矫正x坐标
+    // this.prerender.getLine(row.segments, x);
+
+    // 设定光标
     const timer = setTimeout(() => {
       clearTimeout(timer);
       this.setCaretPoint(x, offsetTop, row.baseHeight, lineMargin);
     }, 0);
   }
 
+  /**
+   * 设定光标位置
+   * @param x 光标的x坐标
+   * @param y 光标所在行顶部的y坐标
+   * @param baseHeight 光标所在行的最大字号
+   * @param lineMargin 行间距
+   */
   protected setCaretPoint(x: number, y: number, baseHeight: number, lineMargin: number) {
     const lineHeight = getLineHeight(baseHeight);
     const p = {
@@ -117,6 +140,13 @@ export abstract class Editor {
     this._onCaretMove = fn;
   }
 
+  /**
+   * 绘制一行
+   * @param row 行数据
+   * @param x 行的左上角x坐标
+   * @param y 行的左上角y坐标
+   * @returns [绘制完成后右上角x坐标, 整行高]
+   */
   private drawRow(row: IRow, x: number, y: number) {
     const { segments, tab, baseHeight } = row;
     const stylSeg = segments[0] as IParagraphNode;
@@ -143,6 +173,9 @@ export abstract class Editor {
     return [x, baseline + baseBottom];
   }
 
+  /**
+   * 初始化绘制一页
+   */
   private drawArticle() {
     const lines = this.article;
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
@@ -176,7 +209,7 @@ export abstract class Editor {
     this.article = lines;
     this.drawArticle();
   }
-  
+
   resize() {
     let changed = false;
     const { elCanvas } = this;

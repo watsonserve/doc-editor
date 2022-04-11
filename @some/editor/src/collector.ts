@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events';
 import { Editor } from './core';
-import { PreRender } from './prerender';
 import {
   EnWriteType,
   IFontStyle,
@@ -59,7 +58,6 @@ export class Collector extends Editor {
   private cache: ISyncSeg[] = [];
   private todoTimer = 0;
   private syncer?: ISyncer;
-  private readonly prerender = new PreRender();
   private doc: IDocNode[] = [];
   private stylIndexer: IStyleNode[] = [];
 
