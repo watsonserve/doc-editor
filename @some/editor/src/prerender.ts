@@ -22,8 +22,15 @@ function _getFontMaxSize(arr: IDocNode[]) {
   return fontSize;
 }
 
+type Canvas = HTMLCanvasElement;
+
+function genCanvas(): Canvas {
+  const OffscreenCanvas = (window as any).OffscreenCanvas;
+  return OffscreenCanvas && new OffscreenCanvas(300, 300) || document.createElement('canvas');
+}
+
 export class PreRender {
-  private elCanvas = document.createElement('canvas');
+  private readonly elCanvas = genCanvas();
   private ctx;
 
   constructor() {
@@ -38,7 +45,7 @@ export class PreRender {
    * @param width 可用空间
    * @returns [段数, 字数]
    */
-  getLine(arr: IDocNode[], width: number): number[] {
+  _getLine(arr: IDocNode[], width: number): number[] {
     const sum = arr.length;
     let segWidth = 0, useWidth = 0, i = 0;
 
@@ -144,7 +151,7 @@ export class PreRender {
     }
 
     do {
-      const [seg, cnt] = this.getLine(arr, width - _tab);
+      const [seg, cnt] = this._getLine(arr, width - _tab);
       const segments = this._splice(arr, seg, cnt);
 
       paragraph.push({

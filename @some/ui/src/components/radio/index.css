@@ -1,0 +1,24 @@
+.some-selector {
+  position: relative;
+}
+
+.some-selector__title {
+  display: block;
+  border-radius: var(--radius);
+  padding: 0 8px;
+  height: 24px;
+  font-size: 14px;
+  line-height: 24px;
+  background-color: var(--form-bg-color);
+  cursor: pointer;
+}
+
+.some-selector__title:hover {
+  background-color: var(--form-hover-color);
+}
+
+.some-selector .some-menu {
+  position: fixed;
+  z-index: 10;
+  width: fit-content;
+}

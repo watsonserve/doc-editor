@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { ISelectorProps, INameTitle } from '../../types';
+import { IRadioProps, INameTitle } from '../../types';
 import { classify, fixPosition } from '../../helper';
 import Menu from '../menu';
 import './index.css';
 
-export default function Selector<T> (props: ISelectorProps<T>) {
+export default function Radio<T> (props: IRadioProps<T>) {
   const [show, setShow] = useState(false);
   const selfRef = useRef(null);
 
