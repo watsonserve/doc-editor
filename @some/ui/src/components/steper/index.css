@@ -1,7 +1,7 @@
 .some-steper {
   display: flex;
   border-radius: var(--radius);
-  width: 108px;
+  flex: 0 0 fit-content;
   align-items: center;
   overflow: hidden;
   font-size: 14px;
@@ -9,7 +9,8 @@
 
 .some-steper__sub, .some-steper__add {
   display: block;
-  flex: 24px 0 0;
+  flex: 0 0 24px;
+  width: 24px;
   text-align: center;
   background-color: var(--form-bg-color);
   line-height: 24px;
@@ -28,9 +29,10 @@
   box-sizing: border-box;
   border: 0;
   padding: 0 2px;
-  min-width: 60px;
-  max-width: 60px;
+  flex: 0 0 60px;
+  width: 60px;
   height: 24px;
+  overflow: hidden;
   text-align: center;
   color: #fff;
   background-color: var(--form-bg-color);
@@ -40,6 +42,7 @@
 .some-steper .some-menu {
   position: fixed;
   z-index: 10;
+  width: 100%;
 }
 
 .some-steper .some-menu.some-hide:not(:hover) {

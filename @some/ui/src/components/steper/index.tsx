@@ -21,7 +21,7 @@ export default function Steper(props: ISteperProps) {
     props.onInput(_n);
   };
   
-  const emitInput = (ev: React.FocusEvent) => {
+  const emitInput = (ev: React.SyntheticEvent) => {
     ev.stopPropagation();
     ev.preventDefault();
 
@@ -87,13 +87,14 @@ export default function Steper(props: ISteperProps) {
         onInput={handleInput}
         onFocus={handleFocus}
         onBlurCapture={emitInput}
+        onKeyUp={(ev) => 'enter' === ev.key.toLowerCase() && emitInput(ev)}
       />
       <span
         className={classify({"some-steper__add": true, disabled: +num >= max })}
         onClick={ev => handleClick(ev, 1)}
       >+</span>
 
-      {showOpts && <Menu
+      {!!showOpts && <Menu
         className={classify({ 'some-hide': showOpts === 1 })}
         tree={options}
         style={getPosition(selfRef.current!)}

@@ -6,7 +6,7 @@ import './index.css';
 
 export default function Selector<T> (props: ISelectorProps<T>) {
   const [show, setShow] = useState(false);
-  const selfRef = useRef(null);
+  const selfRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!show) return;
@@ -27,11 +27,12 @@ export default function Selector<T> (props: ISelectorProps<T>) {
     const opts = new Array(options.length);
     let item, active, title = '';
 
-    let left = 0, top = 0;
+    let left = 0, top = 0, width = 100;
     if (selfRef.current) {
       const { x, y } = fixPosition(selfRef.current!);
       left = x;
-      top = y + (selfRef.current! as HTMLDivElement).clientHeight;
+      top = y + selfRef.current.clientHeight;
+      width = selfRef.current.clientWidth;
     }
 
     for (let idx in options) {
@@ -48,7 +49,7 @@ export default function Selector<T> (props: ISelectorProps<T>) {
       <span className="some-selector__title" onClick={() => !show && setShow(true)}>
         {title}
       </span>
-      {show && <Menu tree={opts} style={{ left, top }} onClick={(dist: INameTitle<T>) => props.onInput(dist.name)} />}
+      {show && <Menu tree={opts} style={{ left, top, width }} onClick={(dist: INameTitle<T>) => props.onInput(dist.name)} />}
     </div>
   )}, [props.className, props.value, props.options, setShow, props.onInput, show]);
 }

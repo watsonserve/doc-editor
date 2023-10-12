@@ -1,18 +1,19 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { fixPosition } from './index';
 import { INameTitle } from '../types';
 
 export function useDownOptions<T>(value: T, options: INameTitle<T>[]) {
   const getPosition = (el: HTMLElement) => {
-    let left = 0, top = 0;
+    let left = 0, top = 0, width = 100;
 
     if (el) {
       const { x, y } = fixPosition(el);
       left = x;
       top = y + el.clientHeight;
+      width = el.clientWidth;
     }
 
-    return { left, top };
+    return { left, top, width };
   };
 
   const opts = useMemo(() => {
@@ -31,5 +32,5 @@ export function useDownOptions<T>(value: T, options: INameTitle<T>[]) {
     return opts;
   }, [value, ...options]);
 
-  return useMemo(() => ({ getPosition, options: opts }), [opts, getPosition]);
+  return useMemo(() => ({ getPosition, options: opts }), [opts]);
 }

@@ -1,8 +1,18 @@
-import React, { ReactElement, JSXElementConstructor, ReactPortal } from 'react';
+import { ReactElement, JSXElementConstructor, ReactPortal, MouseEventHandler } from 'react';
 
 export interface INameTitle<T = string> {
   name: T;
   title: string;
+}
+
+export interface IBtnProps {
+  className?: string;
+  title?: string;
+  active?: boolean;
+  disabled?: boolean;
+  type?: string;
+  children?: any;
+  onClick: MouseEventHandler;
 }
 
 export interface TabItemProps {

@@ -35,26 +35,29 @@ function MenuItem<T>(props: IMenuTree<T> & { onClick(): void }) {
   }, [className, checkbox, active, disabled, title, tip, Icon, onClick]);
 }
 
-export default function<T>(props: IMenuProps<T>) {
+export default function Menu<T>(props: IMenuProps<T>) {
+  const { className, style, tree, onClick } = props;
+
   const handleClick = useCallback((dist) => {
     if (dist.children) {
       // @TODO
       return;
     }
-    props.onClick(dist);
-  }, [props.onClick]);
+    onClick(dist);
+  }, [onClick]);
 
   const list = useMemo(
-    () => props.tree.map(item =>
+    () => tree.map(item =>
       !item
       ? <hr/>
       : <MenuItem { ...item} key={item.name as any} onClick={() => handleClick(item)} />
     ),
-    [...props.tree, handleClick]
+    [...tree, handleClick]
   );
 
   return useMemo(() => (
-    <ul className={classify(['some-menu', props.className])} style={props.style}>
+    <ul className={classify(['some-menu', className])} style={style}>
       {list}
-    </ul>), [props.className, props.style, list]);
+    </ul>
+  ), [className, style, list]);
 }
