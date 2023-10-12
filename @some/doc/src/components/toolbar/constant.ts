@@ -22,6 +22,7 @@ export const menuList = [{
 }];
 
 export const fontFamilyList = [
+  { name: 'sans-serif', title: 'sans-serif' },
   { name: '"Bradley Hand ITC"', title: 'Bradley Hand ITC' },
   { name: '"Noto Mono"', title: 'Noto Mono' },
   { name: '"Source Han Serif"', title: 'Source Han Serif', tip: '思源宋体' },

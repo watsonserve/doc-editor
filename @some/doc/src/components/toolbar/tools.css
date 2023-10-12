@@ -19,12 +19,24 @@
   display: flex;
 }
 
-a.edit-tools-btn {
+.edit-tools-btns + .edit-tools-btns {
+  margin-top: 8px;
+}
+
+.edit-tools-btn {
   display: block;
   width: 24px;
   height: 24px;
   text-align: center;
   line-height: 24px;
+}
+
+.edit-tools-btn + .edit-tools-btn {
+  margin-left: 2px;
+}
+
+.edit-tools-btn.active {
+  border-radius: 4px;
 }
 
 .edit-tools__font-size-large {
@@ -91,6 +103,21 @@ a.edit-tools-btn {
   width: fit-content;
 }
 
+.edit-tools__font-family {
+  flex-basis: 200px;
+  width: 200px;
+}
+
+.edit-tools__font-lev {
+  flex-basis: 80px;
+  width: 80px;
+}
+
 .some-selector ul.some-menu {
   min-width: 6em;
+}
+
+.some-steper__input {
+  flex-basis: 52px;
+  width: 52px;
 }

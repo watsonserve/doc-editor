@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { IToolProps } from './types';
 import { fontLevList, fontFamilyList, fontCnSizeDict, lineMarginList } from './constant';
 import ToolBlk from './tool-blk';
-import { Selector, Steper } from '@some/ui';
+import { Button, Selector, Steper } from '@some/ui';
+import { EnFontStyle } from '@some/editor';
 
 const fontSizeRange = (mm: number) => {
   const min = 5;
@@ -23,63 +24,82 @@ const fontSizeRange = (mm: number) => {
     };
   });
 }
+const fontSizeList = fontSizeRange(210);
 
 function FontTool(props: IToolProps) {
-  const [fontFamily, setFontFamily] = useState(props.config.fontFamily);
-  const fontSizeList = fontSizeRange(210);
+  const { config, onChange } = props;
+  const { BIUS: statBIUS } = config;
+  const [fontFamily, setFontFamily] = useState(config.fontFamily);
 
   const fontFamilyChange = (family: string) => {
     setFontFamily(family);
-    props.onChange('fontFamily', family);
+    onChange('fontFamily', family);
   };
 
-  const fontSizeChange = (pt: number) => props.onChange('fontSize', pt);
+  const fontSteper = useMemo(() => (
+    <Steper
+      min={fontSizeList[0].name}
+      max={fontSizeList[fontSizeList.length - 1].name}
+      value={config.fontSize}
+      options={fontSizeList}
+      onInput={(pt: number) => onChange('fontSize', pt)}
+    />
+  ), [config.fontSize, onChange]);
 
-  const handleFontSizeL = () => {};
-  const handleFontSizeS = () => {};
-  const handleFontBlod = () => {};
+  const btns = useMemo(() => {
+    const btnCfg: [string, string, any][] = [
+      ['bold', 'B', (statBIUS & 0xffff) === 700],
+      ['italic', 'I', !!(statBIUS & EnFontStyle.ITALIC)],
+      ['underline', 'U', !!(statBIUS & EnFontStyle.UNDERLINE)],
+      ['through', 'S',  !!(statBIUS & EnFontStyle.LINE_THROUGH)],
+      ['super', 'x', false],
+      ['sub', 'x', false],
+      ['upper', 'Aa', false],
+    ];
+
+    const handleFont = (n: string, a: boolean) => {
+      switch (n) {
+        case 'bold':
+          const nxt = (statBIUS ^ (statBIUS & 0xffff)) | (a ? 700 : 400);
+          console.log(nxt)
+          return onChange('BIUS', nxt);
+        case 'italic':
+          return onChange('BIUS', statBIUS ^ EnFontStyle.ITALIC);
+        case 'underline':
+          return onChange('BIUS', statBIUS ^ EnFontStyle.UNDERLINE);
+        case 'through':
+          return onChange('BIUS', statBIUS ^ EnFontStyle.LINE_THROUGH);
+        default:
+      }
+    };
+
+    return btnCfg.map(
+      ([name, title, active]) =>
+        <Button
+          key={name}
+          className={`edit-tools-btn edit-tools__font-${name}`}
+          title={title}
+          active={active}
+          onClick={() => handleFont(name, !active)}
+        />
+    );
+  }, [onChange, statBIUS]);
 
   return (
     <ToolBlk title="字体">
       <div className="edit-tools-btns">
         {/* 字体选择器 */}
         <Selector
-          className="edit-tools__font-lev"
+          className="edit-tools__font-family"
           options={fontFamilyList}
           value={fontFamily}
           onInput={fontFamilyChange}
         />
         {/* 字号选择器 */}
-        <Steper
-          min={fontSizeList[0].name}
-          max={fontSizeList[fontSizeList.length - 1].name}
-          value={props.config.fontSize}
-          options={fontSizeList}
-          onInput={fontSizeChange}
-        />
+        {fontSteper}
       </div>
       <div className="edit-tools-btns">
-        <a className="edit-tools-btn" onClick={handleFontBlod}>
-          <span className="edit-tools__font-bold">B</span>
-        </a>
-        <a className="edit-tools-btn" onClick={handleFontSizeS}>
-          <span className="edit-tools__font-italic">I</span>
-        </a>
-        <a className="edit-tools-btn" onClick={handleFontSizeS}>
-          <span className="edit-tools__font-underline">U</span>
-        </a>
-        <a className="edit-tools-btn" onClick={handleFontSizeS}>
-          <span className="edit-tools__font-through">S</span>
-        </a>
-        <a className="edit-tools-btn" onClick={handleFontSizeL}>
-          <span className="edit-tools__font-super">x</span>
-        </a>
-        <a className="edit-tools-btn" onClick={handleFontSizeS}>
-          <span className="edit-tools__font-sub">x</span>
-        </a>
-        <a className="edit-tools-btn" onClick={handleFontSizeS}>
-          <span className="edit-tools__font-upper">Aa</span>
-        </a>
+        {btns}
       </div>
     </ToolBlk>
   );

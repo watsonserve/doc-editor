@@ -1,4 +1,4 @@
-import { Suspense, lazy, useRef, useEffect } from 'react';
+import { Suspense, lazy, useRef, useState, useEffect } from 'react';
 import './App.css';
 import EditorView from '@some/editor';
 import { Syncer } from './helper/syncer';
@@ -10,9 +10,10 @@ function App() {
   const editorApiRef = useRef<any>(null);
   const mainRef = useRef<any>(null);
 
-  const config = useRef({
+  const [config, setConfig] = useState({
     fontSize: 16,
-    fontFamily: 'serif',
+    BIUS: 400,
+    fontFamily: 'sans-serif',
     lineMargin: 1,
     color: '#333',
     bgColor: 'transparent',
@@ -22,8 +23,9 @@ function App() {
   useEffect(() => {
     editorApiRef.current = new EditorView(new Syncer());
     mainRef.current.appendChild(editorApiRef.current);
-    editorApiRef.current.change('pageSize', config.current.pageSize);
-    editorApiRef.current.change('fontSize', config.current.fontSize);
+    Object.entries(config).forEach(
+      ([key, val]) => editorApiRef.current.change(key, val)
+    );
 
     return () => {
       editorApiRef.current.destroy();
@@ -34,16 +36,19 @@ function App() {
   const handleConfigChange = (attr: string, val: any) => {
     console.log(`config change set${attr} =`, val);
     editorApiRef.current.change(attr, val);
+
+    setConfig({ ...config, [attr]: val });
   };
 
   return (
     <div className="App">
       <header className="App-header">
         <Suspense fallback={<div></div>}>
-          <Toolbar config={config.current} onChange={handleConfigChange} />
+          <Toolbar config={config} onChange={handleConfigChange} />
         </Suspense>
       </header>
       <div className="main" ref={mainRef}>
+        {/* <editor-view /> */}
       </div>
       <Suspense fallback={<div></div>}>
         <Statbar />
