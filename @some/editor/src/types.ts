@@ -1,16 +1,17 @@
+// BIUS
 export enum EnFontStyle {
   LIGHTER = 100,
   NORMAL = 400,
   BOLD = 700,
   BOLDER = 900,
-  ITALIC = 1 << 16,
-  UNDERLINE = 1 << 17,
-  LINE_THROUGH = 1 << 18,
+  ITALIC = 0x10000,
+  UNDERLINE = 0x20000,
+  LINE_THROUGH = 0x40000,
 }
 
-export const FontWeight = EnFontStyle.LIGHTER | EnFontStyle.NORMAL | EnFontStyle.BOLD | EnFontStyle.BOLDER;
+export type FontWeight = EnFontStyle.LIGHTER | EnFontStyle.NORMAL | EnFontStyle.BOLD | EnFontStyle.BOLDER;
 
-export const fontStyleMask = Object.keys(EnFontStyle).reduce((s, k) => s & (+k || 0), 0);
+export const fontStyleMask = Object.keys(EnFontStyle).reduce((s, k) => s | (+k || 0), 0);
 
 type TRBL = 'top' | 'right' | 'bottom' | 'left';
 
@@ -20,21 +21,27 @@ export type IPageStyle = {
   padding: IBlockSize;
 }
 
-export interface IFontStyle {
+export interface ITextStyle {
+  color: string;
+  BIUS: number; // EnFontStyle
+  superscript: 'no' | 'up' | 'down';
+  letterSpacing: number;
   fontFamily: string;
   fontSize: number;
-  fontWeight: number;
+  backgroundColor: string;
 }
 
 export interface IParagraphOnlyStyle {
-  firstTab: number;
-  tab: number;
+  firstIndent: number;
+  indent: number;
   marginTop: number;
   marginBottom: number;
   lineMargin: number;
+  textAlign: 'left' | 'right' | 'center';
+  justify: boolean;
 };
 
-export type IParagraphStyle = IFontStyle & IParagraphOnlyStyle;
+export type IParagraphStyle = ITextStyle & IParagraphOnlyStyle;
 
 export enum EnWriteType {
   UNKNOW = 0,
@@ -45,9 +52,9 @@ export enum EnWriteType {
 
 export interface ITxtNode { type: EnWriteType.TEXT; txt: string; width: number; };
 export interface IParagraphNode extends IParagraphStyle { type: EnWriteType.PARAGRAPH_STYLE };
-export interface IFontStyleNode extends IFontStyle { type: EnWriteType.FONT_STYLE };
+export interface ITextStyleNode extends ITextStyle { type: EnWriteType.FONT_STYLE };
 
-export type IStyleNode = IParagraphNode | IFontStyleNode;
+export type IStyleNode = IParagraphNode | ITextStyleNode;
 export type IDocNode = ITxtNode | IStyleNode;
 
 

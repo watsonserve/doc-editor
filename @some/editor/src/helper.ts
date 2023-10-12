@@ -1,11 +1,12 @@
 import {
   EnWriteType,
-  IFontStyle,
+  ITextStyle,
   IParagraphOnlyStyle,
   IParagraphStyle,
   IStyleNode,
   IParagraphNode,
-  IDocNode
+  IDocNode,
+  EnFontStyle
 } from './types';
 
 let _ppi = 0;
@@ -22,6 +23,9 @@ export function getPPI(flush = false) {
   return ppi;
 }
 
+// PPI: px / in
+// DPI: dot / in
+// PT : 1 / 72in
 export class Scaler {
   private dpi = 300;
   private ppi = getPPI();
@@ -33,12 +37,13 @@ export class Scaler {
 
   px2dot = (px: number) => px * this.dpi / this.ppi;
 
-  dot2px = (dot: number) => dot * this.ppi /this.dpi;
+  pt2dot = (pt: number) => pt * this.dpi / 72;
 
-  pt2dot = (dot: number) => dot * this.dpi / 72;
+  dot2px = (dot: number) => dot * this.ppi /this.dpi;
 
   dot2pt = (dot: number) => dot * 72 / this.dpi;
 }
+
 
 export function genId() {
   return (window.crypto as any).randomUUID();
@@ -67,8 +72,10 @@ export function getLineMiddle(lineHeight: number, lineMargin: number) {
   return lineHeight * lineMargin / 2;
 }
 
-export function getFont(style: string, weight: number, size: number, family: string) {
-  return `${style} normal ${weight} ${size}px ${family}`;
+export function getFont(style: number, size: number, family: string) {
+  const weight = style & 0xffff;
+  const fontStyle = (style & EnFontStyle.ITALIC) ? 'italic' : 'normal';
+  return `${fontStyle} ${weight} ${size}px ${family}`;
 }
 
 function pick<T>(s: T, ks: (keyof T)[]) {
@@ -78,12 +85,12 @@ function pick<T>(s: T, ks: (keyof T)[]) {
   }, {} as T) as T;
 }
 
-function pickFontStyle(s: IFontStyle) {
-  return pick(s, ['fontFamily', 'fontSize', 'fontWeight']);
+function pickFontStyle(s: ITextStyle) {
+  return pick(s, ['fontFamily', 'fontSize', 'color', 'BIUS', 'superscript', 'letterSpacing', 'fontFamily', 'fontSize', 'backgroundColor']);
 }
 
 function pickParagraph(s: IParagraphOnlyStyle): IParagraphOnlyStyle {
-  return pick(s, ['firstTab', 'tab', 'marginTop', 'marginBottom', 'lineMargin']);
+  return pick(s, ['firstIndent', 'indent', 'marginTop', 'marginBottom', 'lineMargin', 'textAlign', 'justify']);
 }
 
 export function findStyleNode(arr: IDocNode[]): IStyleNode | undefined {
@@ -105,7 +112,7 @@ export function getParagraphNode(arr: IDocNode[]): IParagraphNode | undefined {
 
   return {
     ...(pickParagraph(arr[pi] as IParagraphStyle)),
-    ...pickFontStyle(arr[fi] as IFontStyle),
+    ...pickFontStyle(arr[fi] as ITextStyle),
     type: EnWriteType.PARAGRAPH_STYLE
   };
 }

@@ -2,7 +2,7 @@ import { getFont } from './helper';
 import {
   EnWriteType,
   ITxtNode,
-  IFontStyleNode,
+  ITextStyleNode,
   IDocNode,
   IParagraphStyle,
   IRow
@@ -12,7 +12,7 @@ import { findStyleNode } from './helper';
 function _getFontMaxSize(arr: IDocNode[]) {
   let fontSize = 0;
 
-  for (let _node of arr as IFontStyleNode[]) {
+  for (let _node of arr as ITextStyleNode[]) {
     if (!(EnWriteType.FONT_STYLE & _node.type)) continue;
     if (fontSize < _node.fontSize) {
       fontSize = _node.fontSize;
@@ -50,7 +50,7 @@ export class PreRender {
     let segWidth = 0, useWidth = 0, i = 0;
 
     for (; i < sum && useWidth < width; i++) {
-      const { type, txt, fontWeight, fontSize = 0, fontFamily } = arr[i] as (ITxtNode & IFontStyleNode);
+      const { type, txt, BIUS, fontSize = 0, fontFamily } = arr[i] as (ITxtNode & ITextStyleNode);
 
       switch (type) {
         // @ts-ignore
@@ -58,11 +58,11 @@ export class PreRender {
           if (i || !i && i === sum) return [i, 0];
         case EnWriteType.FONT_STYLE:
           this.ctx.font = getFont(
-            'normal',
-            fontWeight,
+            BIUS,
             fontSize,
             fontFamily
           );
+          console.log('cvs', this.ctx.font);
           break;
         case EnWriteType.TEXT:
           segWidth = this.ctx.measureText(txt).width;
@@ -138,10 +138,10 @@ export class PreRender {
       return [];
     };
 
-    const { firstTab, tab } = arr[0] as IParagraphStyle;
-    const paragraph = [];
+    const { firstIndent, indent } = arr[0] as IParagraphStyle;
+    const paragraphs = [];
 
-    let _tab = firstTab;
+    let _tab = firstIndent;
     if (arr.length < 2) {
       return [{
         segments: arr,
@@ -154,17 +154,17 @@ export class PreRender {
       const [seg, cnt] = this._getLine(arr, width - _tab);
       const segments = this._splice(arr, seg, cnt);
 
-      paragraph.push({
+      paragraphs.push({
         segments,
         tab: _tab,
         baseHeight: _getFontMaxSize(segments)
       });
 
-      if (firstTab === _tab) {
-        _tab = tab;
+      if (firstIndent === _tab) {
+        _tab = indent;
       }
     } while (arr.length);
 
-    return paragraph;
+    return paragraphs;
   }
 }

@@ -6,7 +6,7 @@ import { EnWriteType } from './types';
 export default class EditorView extends HTMLElement {
   private elWrapper = document.createElement('div');
   private elInputer = new CaretInputer('editor__inputer');
-  private readonly editorRef;
+  private readonly editorRef: Collector;
   private readonly elStyle = document.createElement('style');
 
   constructor(syncer: ISyncer) {
@@ -86,6 +86,7 @@ export default class EditorView extends HTMLElement {
       case 'fontFamily':
       case 'fontSize':
       case 'lineMargin':
+      case 'BIUS':
         // return this._setFontFamily(val);
         // return this._setFontSize(val);
         // return this._setLineMargin(val);

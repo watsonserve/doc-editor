@@ -1,5 +1,5 @@
 import { Scaler, getLineHeight, getLineMarginHalf, getBaseline, getFont } from './helper';
-import { EnWriteType, IBlockSize, IFontStyleNode, IParagraphNode, IRow, ITxtNode } from './types';
+import { EnWriteType, IBlockSize, ITextStyleNode, IParagraphNode, IRow, ITxtNode } from './types';
 import { PreRender } from './prerender';
 
 export interface IPoint {
@@ -158,11 +158,11 @@ export abstract class Editor {
 
     for (let item of segments) {
       if (EnWriteType.FONT_STYLE & item.type) {
-        const { fontWeight, fontFamily } = item as IFontStyleNode;
-        const fontSize = (item as IFontStyleNode).fontSize;
-        const font = getFont('normal', fontWeight, fontSize, fontFamily);
-        if (font.match(/undefined|NaN| $/)) console.warn('getFont', font);
+        const { BIUS, fontFamily } = item as ITextStyleNode;
+        const fontSize = (item as ITextStyleNode).fontSize;
+        const font = getFont(BIUS, fontSize, fontFamily);
         this.ctx.font = font;
+        console.warn('match-getFont', BIUS.toString(16), font, '\n', this.ctx.font);
       } else {
         const { txt, width: segWdith } = item as ITxtNode;
         this.ctx.fillText(txt, x, _base, width);

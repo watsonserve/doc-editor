@@ -1,11 +1,12 @@
 import { EventEmitter } from 'events';
 import { Editor } from './core';
 import {
+  EnFontStyle,
   EnWriteType,
-  IFontStyle,
+  ITextStyle,
   IDocNode,
   IStyleNode,
-  IFontStyleNode,
+  ITextStyleNode,
   IParagraphNode,
   IParagraphStyle
 } from './types';
@@ -69,14 +70,20 @@ export class Collector extends Editor {
     super();
     this.doc[0] = this.stylIndexer[0] = {
       type: EnWriteType.PARAGRAPH_STYLE,
+      color: '#000',
+      BIUS: EnFontStyle.NORMAL,
+      superscript: 'no',
+      letterSpacing: 0,
       fontFamily: '',
       fontSize: 16,
-      fontWeight: 400,
-      firstTab: 0,
-      tab: 0,
+      backgroundColor: 'transparent',
+      firstIndent: 0,
+      indent: 0,
       marginTop: 0,
       marginBottom: 0,
-      lineMargin: 1
+      lineMargin: 1,
+      textAlign: 'left',
+      justify: false
     };
     this.syncLayout = io;
   }
@@ -106,7 +113,7 @@ export class Collector extends Editor {
     this.syncer?.send && this.syncer.send(dataset);
   }
 
-  private _setStyleNode(styl: Partial<IFontStyle>) {
+  private _setStyleNode(styl: Partial<ITextStyle>) {
     const last = this.doc[this.doc.length - 1];
     // 前序节点为样式节点
     if (EnWriteType.FONT_STYLE & last.type) {
@@ -119,7 +126,7 @@ export class Collector extends Editor {
       ...styl,
       __proto__: this.stylIndexer[this.stylIndexer.length - 1],
       type: EnWriteType.FONT_STYLE
-    } as IFontStyleNode;
+    } as ITextStyleNode;
 
     this.doc.push(nextStylNode);
     this.stylIndexer.push(nextStylNode);
@@ -131,7 +138,8 @@ export class Collector extends Editor {
     Object.assign(this.stylIndexer[i], styl);
   }
 
-  private _writeStyle(styl: Partial<IFontStyle>) {
+  private _writeStyle(styl: Partial<ITextStyle>) {
+    console.log('_writeStyle', styl);
     const paragraphStyles = partial(styl, paragraphKeys) as Partial<IParagraphStyle>;
 
     if (Object.keys(paragraphStyles)) this._setparagraphNode(paragraphStyles);
