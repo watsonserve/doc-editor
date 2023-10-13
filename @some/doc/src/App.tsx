@@ -17,7 +17,8 @@ function App() {
     lineMargin: 1,
     color: '#333',
     bgColor: 'transparent',
-    pageSize: { width: '210mm', height: '297mm' }
+    pageSize: { width: '210mm', height: '297mm' },
+    pagePadding: { top: 20, right: 20, bottom: 20, left: 20 } // unit: pt
   });
 
   useEffect(() => {

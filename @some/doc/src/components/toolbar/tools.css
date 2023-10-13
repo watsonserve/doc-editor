@@ -121,3 +121,8 @@
   flex-basis: 52px;
   width: 52px;
 }
+
+.edit-tools-btn.some-palette {
+  border-radius: 4px;
+  background-color: #fff;
+}

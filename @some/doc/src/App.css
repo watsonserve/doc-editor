@@ -21,6 +21,13 @@ p {
   color: #61dafb;
 }
 
+hr.vr {
+  margin: 0 8px;
+  border: 0;
+  width: 1px;
+  background-color: var(--tool-blcok-vr-color);
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

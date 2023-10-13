@@ -158,11 +158,13 @@ export abstract class Editor {
 
     for (let item of segments) {
       if (EnWriteType.FONT_STYLE & item.type) {
-        const { BIUS, fontFamily } = item as ITextStyleNode;
+        const { BIUS, color, fontFamily } = item as ITextStyleNode;
         const fontSize = (item as ITextStyleNode).fontSize;
         const font = getFont(BIUS, fontSize, fontFamily);
         this.ctx.font = font;
-        console.warn('match-getFont', BIUS.toString(16), font, '\n', this.ctx.font);
+        if (color) {
+          this.ctx.fillStyle = color;
+        }
       } else {
         const { txt, width: segWdith } = item as ITxtNode;
         this.ctx.fillText(txt, x, _base, width);

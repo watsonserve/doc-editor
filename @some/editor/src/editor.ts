@@ -86,6 +86,7 @@ export default class EditorView extends HTMLElement {
       case 'fontFamily':
       case 'fontSize':
       case 'lineMargin':
+      case 'color':
       case 'BIUS':
         // return this._setFontFamily(val);
         // return this._setFontSize(val);

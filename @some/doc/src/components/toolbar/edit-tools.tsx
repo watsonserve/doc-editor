@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { IToolProps } from './types';
 import { fontLevList, fontFamilyList, fontCnSizeDict, lineMarginList } from './constant';
 import ToolBlk from './tool-blk';
-import { Button, Selector, Steper } from '@some/ui';
+import { Button, Palette, Selector, Steper } from '@some/ui';
 import { EnFontStyle } from '@some/editor';
 
 const fontSizeRange = (mm: number) => {
@@ -85,6 +85,14 @@ function FontTool(props: IToolProps) {
     );
   }, [onChange, statBIUS]);
 
+  const palette = useMemo(() => {
+    return (
+      <Palette className="edit-tools-btn" value={config.color} onInput={c => onChange('color', c)}>
+        <span style={{ color: config.color, fontWeight: 'bold' }}>A</span>
+      </Palette>
+    );
+  }, [config.color, onChange]);
+
   return (
     <ToolBlk title="字体">
       <div className="edit-tools-btns">
@@ -100,6 +108,8 @@ function FontTool(props: IToolProps) {
       </div>
       <div className="edit-tools-btns">
         {btns}
+        <hr className="vr" style={{ height: '24px' }} />
+        {palette}
       </div>
     </ToolBlk>
   );
