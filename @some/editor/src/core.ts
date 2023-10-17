@@ -178,8 +178,8 @@ export abstract class Editor {
   /**
    * 初始化绘制一页
    */
-  private drawArticle() {
-    const lines = this.article;
+  protected draw(lines: IRow[]) {
+    this.article = lines;
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
     const pagePaddingLeft = this._pagePadding.left;
     let y = this._pagePadding.top;
@@ -207,11 +207,6 @@ export abstract class Editor {
     this.setCaretPoint(x, y, baseHeight, (segments[0] as IParagraphNode).lineMargin);
   }
 
-  protected draw(lines: IRow[]) {
-    this.article = lines;
-    this.drawArticle();
-  }
-
   resize() {
     let changed = false;
     const { elCanvas } = this;
@@ -229,5 +224,14 @@ export abstract class Editor {
     }
     if (!changed) return;
     this.redraw();
+  }
+
+  print() {
+    this.elCanvas.toBlob(b => {
+      console.log(b);
+      if (!b) return;
+      const url = URL.createObjectURL(b);
+      window.open(url, '_blank');
+    }, 'image/png');
   }
 }

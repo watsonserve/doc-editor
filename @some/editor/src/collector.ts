@@ -10,7 +10,7 @@ import {
   IParagraphNode,
   IParagraphStyle
 } from './types';
-import { partial, Scaler } from './helper';
+import { partial, readJSONFile, Scaler } from './helper';
 
 type ISyncSeg = IDocNode & { paragraph: number };
 const { pt2dot } = Scaler.instance;
@@ -218,5 +218,26 @@ export class Collector extends Editor {
       this.todoTimer = 0;
       this._save();
     }, 300);
+  }
+
+  async open() {
+    try {
+      const fileData = await readJSONFile();
+      if (!Array.isArray(fileData)) throw(new Error('unknow data'));
+      this.doc = [];
+      fileData.forEach((item: any) => this.write(item));
+    } catch(err: any) {
+      alert(err.message);
+    }
+  }
+
+  save() {
+    const content = JSON.stringify(this.doc);
+    const b = new Blob([content], { type: 'application/ostream' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.type = 'application/json';
+    a.download = 'a.json';
+    a.click();
   }
 }

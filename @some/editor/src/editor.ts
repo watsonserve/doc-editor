@@ -98,6 +98,18 @@ export default class EditorView extends HTMLElement {
         console.warn(attr, val);
     }
   }
+
+  open() {
+    this.editorRef.open();
+  }
+
+  save() {
+    this.editorRef.save();
+  }
+
+  print() {
+    this.editorRef.print();
+  }
 }
 
 customElements.define('editor-view', EditorView);

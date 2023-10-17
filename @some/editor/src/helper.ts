@@ -126,3 +126,19 @@ export function partial(s: Record<string, any>, keys: Set<string>) {
     return pre;
   }, {} as Record<string, any>);
 }
+
+export function blob2Txt(file: Blob) {
+  const fr = new FileReader();
+  fr.readAsText(file);
+  return new Promise<string>((resolve, reject) => {
+    fr.onload = () => resolve(fr.result as string);
+    fr.onabort = (ev) => reject(new Error('abort'));
+  });
+}
+
+export async function readJSONFile() {
+  const [fileHandle] = await (window as any).showOpenFilePicker({ types: [{ accept: { 'application/json': ['.json'] } }] })
+  const file = await fileHandle.getFile();
+  const fc = await blob2Txt(file);
+  return JSON.parse(fc);
+}

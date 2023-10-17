@@ -28,9 +28,30 @@ function App() {
       ([key, val]) => editorApiRef.current.change(key, val)
     );
 
+    const shortKeys = (ev: KeyboardEvent) => {
+      const cmdKey = navigator.userAgent.toLowerCase().match('mac os x') ? ev.metaKey : ev.ctrlKey;
+      if (!cmdKey) return;
+
+      switch (ev.key) {
+        case 'o':
+          ev.preventDefault();
+          return editorApiRef.current?.open();
+        case 's':
+          ev.preventDefault();
+          return editorApiRef.current?.save();
+        case 'p':
+          ev.preventDefault();
+          return editorApiRef.current?.print();
+        default:
+          console.warn(`unknow short key: cmd + ${ev.key}`);
+      }
+    };
+    window.addEventListener('keydown', shortKeys);
+
     return () => {
       editorApiRef.current.destroy();
       delete editorApiRef.current;
+      window.removeEventListener('keyup', shortKeys);
     };
   }, []);
 
@@ -41,11 +62,15 @@ function App() {
     setConfig({ ...config, [attr]: val });
   };
 
+  const handleCmd = (cmd: string) => {
+    editorApiRef.current?.[cmd]?.();
+  };
+
   return (
     <div className="App">
       <header className="App-header">
         <Suspense fallback={<div></div>}>
-          <Toolbar config={config} onChange={handleConfigChange} />
+          <Toolbar config={config} onChange={handleConfigChange} onCmd={handleCmd} />
         </Suspense>
       </header>
       <div className="main" ref={mainRef}>
