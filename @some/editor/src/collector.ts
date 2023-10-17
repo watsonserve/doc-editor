@@ -240,4 +240,14 @@ export class Collector extends Editor {
     a.download = 'a.json';
     a.click();
   }
+
+  exportDOM() {
+    const content = this.drawDom(this.doc);
+    const b = new Blob([content], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.type = 'text/html';
+    a.download = 'a.html';
+    a.click();
+  }
 }

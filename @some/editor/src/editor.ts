@@ -107,6 +107,10 @@ export default class EditorView extends HTMLElement {
     this.editorRef.save();
   }
 
+  exportDOM() {
+    this.editorRef.exportDOM();
+  }
+
   print() {
     this.editorRef.print();
   }

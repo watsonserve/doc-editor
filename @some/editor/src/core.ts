@@ -1,5 +1,5 @@
-import { Scaler, getLineHeight, getLineMarginHalf, getBaseline, getFont } from './helper';
-import { EnWriteType, IBlockSize, ITextStyleNode, IParagraphNode, IRow, ITxtNode } from './types';
+import { Scaler, getLineHeight, getLineMarginHalf, getBaseline, getFont, pickParagraph, pickFontStyle } from './helper';
+import { EnWriteType, IBlockSize, ITextStyleNode, IParagraphNode, IDocNode, IRow, ITxtNode } from './types';
 import { PreRender } from './prerender';
 
 export interface IPoint {
@@ -9,7 +9,34 @@ export interface IPoint {
   height?: number;
 }
 
-const { dot2pt, pt2dot, px2dot, dot2px } = Scaler.instance;
+const { dot2pt, pt2dot, px2dot, dot2px, pt2px } = Scaler.instance;
+
+function toDom(lis: IDocNode[]) {
+  const { marginTop, marginBottom, lineMargin, textAlign } = pickParagraph(lis[0] as IParagraphNode);
+  const pStyle = `margin-top:${marginTop}px;margin-bottom:${marginBottom}px;line-height:${lineMargin * 2}em;text-align:${textAlign}`;
+
+  const p = document.createElement('p');
+  p.setAttribute('style', pStyle);
+
+  let span: HTMLSpanElement | null = null;
+  for (let item of lis) {
+    if (item.type & EnWriteType.FONT_STYLE) {
+      const { fontFamily, fontSize, BIUS, color, backgroundColor } = pickFontStyle(item as ITextStyleNode);
+      const font = getFont(BIUS, pt2px(fontSize), fontFamily);
+      span = document.createElement('span');
+      span.setAttribute('style', `font:${font};color:${color};background-color:${backgroundColor}`);
+    } else if (span) {
+      span.innerHTML = (item as ITxtNode).txt
+        .replace(/&/g, '&amp;')
+        .replace(/ /g, '&nbsp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      p.appendChild(span);
+    }
+  }
+
+  return p;
+};
 
 /**
  * unit: dot
@@ -63,14 +90,14 @@ export abstract class Editor {
   }
 
   set pagePadding(padding: IBlockSize) {
-    const { top, right, bottom, left } = padding;
+    let { top, right, bottom, left } = padding;
 
-    this._pagePadding = {
-      top: pt2dot(top),
-      right: pt2dot(right),
-      bottom: pt2dot(bottom),
-      left: pt2dot(left),
-    };
+    top = pt2dot(top);
+    right = pt2dot(right);
+    bottom = pt2dot(bottom);
+    left = pt2dot(left);
+
+    this._pagePadding = { top, right, bottom, left };
     this.redraw();
   }
 
@@ -205,6 +232,27 @@ export abstract class Editor {
 
     const { baseHeight, segments } = lines[lines.length - 1];
     this.setCaretPoint(x, y, baseHeight, (segments[0] as IParagraphNode).lineMargin);
+  }
+
+  protected drawDom(lines: IDocNode[]) {
+    const { top, right, bottom, left } = this.pagePadding;
+    const { clientWidth, clientHeight } = this.elCanvas;
+    const elDom = document.createElement('div');
+    elDom.setAttribute('style', `box-sizing:border-box;width:${clientWidth}px;height:${clientHeight}px;padding:${pt2px(top)}px ${pt2px(right)}px ${pt2px(bottom)}px ${pt2px(left)}px`);
+
+    let start = 0;
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].type === EnWriteType.PARAGRAPH_STYLE) {
+        const p = toDom(lines.slice(start, i));
+        elDom.appendChild(p);
+        start = i;
+      }
+    }
+    const p = toDom(lines.slice(start));
+    elDom.appendChild(p);
+    const box = document.createElement('div');
+    box.appendChild(elDom);
+    return `<html><body>${box.innerHTML}</body></html>`;
   }
 
   resize() {

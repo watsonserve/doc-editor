@@ -12,7 +12,8 @@ export default function FileTools(props: IToolProps) {
         <a className="file-tools__btn">导入</a>
       </ToolBlk>
       <ToolBlk title="输出">
-        <a className="file-tools__btn" onClick={() => onCmd('save')}>导出</a>
+        <a className="file-tools__btn" onClick={() => onCmd('save')}>保存</a>
+        <a className="file-tools__btn" onClick={() => onCmd('exportDOM')}>导出</a>
         <a className="file-tools__btn" onClick={() => onCmd('print')}>打印</a>
       </ToolBlk>
       <ToolBlk title="版本">

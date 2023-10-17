@@ -39,9 +39,11 @@ export class Scaler {
 
   pt2dot = (pt: number) => pt * this.dpi / 72;
 
-  dot2px = (dot: number) => dot * this.ppi /this.dpi;
+  dot2px = (dot: number) => dot * this.ppi / this.dpi;
 
   dot2pt = (dot: number) => dot * 72 / this.dpi;
+
+  pt2px = (pt: number) => pt * this.ppi / 72;
 }
 
 
@@ -85,11 +87,11 @@ function pick<T>(s: T, ks: (keyof T)[]) {
   }, {} as T) as T;
 }
 
-function pickFontStyle(s: ITextStyle) {
-  return pick(s, ['fontFamily', 'fontSize', 'color', 'BIUS', 'superscript', 'letterSpacing', 'fontFamily', 'fontSize', 'backgroundColor']);
+export function pickFontStyle(s: ITextStyle) {
+  return pick(s, ['fontFamily', 'fontSize', 'color', 'BIUS', 'superscript', 'letterSpacing', 'backgroundColor']);
 }
 
-function pickParagraph(s: IParagraphOnlyStyle): IParagraphOnlyStyle {
+export function pickParagraph(s: IParagraphOnlyStyle): IParagraphOnlyStyle {
   return pick(s, ['firstIndent', 'indent', 'marginTop', 'marginBottom', 'lineMargin', 'textAlign', 'justify']);
 }
 

@@ -1,4 +1,4 @@
-export type EnCmd = 'open'|'save'|'print';
+export type EnCmd = 'open'|'save'|'print'|'exportDOM';
 
 export interface IToolProps {
   className?: string;
