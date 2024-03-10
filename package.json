@@ -12,6 +12,7 @@
     "upc": "yarn workspace @some/connector build",
     "upe": "yarn workspace @some/editor build",
     "upu": "yarn workspace @some/ui build",
+    "up": "yarn upc && yarn upu && yarn upe",
     "start": "yarn workspace @some/doc start",
     "build": "yarn up && yarn workspace @some/doc build"
   },

@@ -1,7 +1,7 @@
 import { CaretInputer, style } from './inputer';
 import { IPoint } from './core';
 import { ISyncer, Collector } from './collector';
-import { EnWriteType } from './types';
+import { EnDeleteType, EnWriteType } from './types';
 
 export default class EditorView extends HTMLElement {
   private elWrapper = document.createElement('div');
@@ -16,6 +16,7 @@ export default class EditorView extends HTMLElement {
     this.elWrapper.setAttribute('class', 'editor');
     this.elWrapper.onclick = ev => this._handleClick(ev);
     this.elInputer.onInput = (txt: string) => this.editorRef.write({ type: EnWriteType.TEXT, txt });
+    this.elInputer.onDelete = (type: EnDeleteType) => this.editorRef.remove(type);
     this.editorRef.onCaretMove = (p: IPoint) => this.elInputer.focus(p);
 
     this.editorRef.resize();

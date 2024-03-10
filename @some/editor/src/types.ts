@@ -60,19 +60,21 @@ export type IDocNode = ITxtNode | IStyleNode;
 
 // export interface __IDocNode extends IParagraphStyle { type: EnWriteType; txt: string };
 
-export interface IParagraphDesc {
-  marginTop: number;
-  marginBottom: number;
-  lineMargin: number;
-  paragraph: {
-    line: IDocNode[];
-    tab: number;
-    baseHeight: number;
-  }[];
+export enum EnDeleteType {
+  BACK,
+  DELETE
 }
 
 export interface IRow {
-  segments: IDocNode[];
   tab: number;
   baseHeight: number;
+  line: IDocNode[];
+}
+
+export interface IParagraph {
+  sn: number; // 段落號
+  marginTop: number;
+  marginBottom: number;
+  lineMargin: number;
+  list: IRow[]; // 行
 }

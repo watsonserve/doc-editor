@@ -5,7 +5,9 @@ import {
   ITextStyleNode,
   IDocNode,
   IParagraphStyle,
-  IRow
+  IRow,
+  IParagraph,
+  IParagraphOnlyStyle
 } from './types';
 import { findStyleNode } from './helper';
 
@@ -130,7 +132,39 @@ export class PreRender {
     return foo;
   }
 
-  initArticle(arr: IDocNode[], width: number): IRow[] {
+  initParagraph(arr: IDocNode[], width: number): IRow[] {
+    const paragraphStyle = arr[0] as IParagraphStyle;
+    const { firstIndent, indent } = paragraphStyle;
+    const paragraphs = [];
+
+    let _tab = firstIndent;
+    if (arr.length < 2) {
+      return [{
+        line: arr,
+        tab: _tab,
+        baseHeight: paragraphStyle.fontSize
+      }];
+    }
+
+    do {
+      const [seg, cnt] = this._getLine(arr, width - _tab);
+      const line = this._splice(arr, seg, cnt);
+
+      paragraphs.push({
+        line,
+        tab: _tab,
+        baseHeight: _getFontMaxSize(line)
+      });
+
+      if (firstIndent === _tab) {
+        _tab = indent;
+      }
+    } while (arr.length);
+
+    return paragraphs;
+  }
+
+  initArticle(arr: IDocNode[], width: number): IParagraph[] {
     if (!arr.length) return [];
 
     if (EnWriteType.PARAGRAPH_STYLE !== arr[0].type) {
@@ -138,32 +172,33 @@ export class PreRender {
       return [];
     };
 
-    const { firstIndent, indent } = arr[0] as IParagraphStyle;
-    const paragraphs = [];
+    const paragraphs: IParagraph[] = [];
+    let sn = 0;
 
-    let _tab = firstIndent;
-    if (arr.length < 2) {
-      return [{
-        segments: arr,
-        tab: _tab,
-        baseHeight: arr[0].fontSize
-      }];
+    let i = 0;
+    let j = 2;
+    for (; j < arr.length; j++) {
+      if (EnWriteType.PARAGRAPH_STYLE === arr[i].type) {
+        const pStyle = arr[i] as IParagraphOnlyStyle;
+        paragraphs.push({
+          sn: sn++,
+          marginTop: pStyle.marginTop,
+          marginBottom: pStyle.marginBottom,
+          lineMargin: pStyle.lineMargin,
+          list: this.initParagraph(arr.slice(i, j), width)
+        });
+        i = j;
+      }
     }
 
-    do {
-      const [seg, cnt] = this._getLine(arr, width - _tab);
-      const segments = this._splice(arr, seg, cnt);
-
-      paragraphs.push({
-        segments,
-        tab: _tab,
-        baseHeight: _getFontMaxSize(segments)
-      });
-
-      if (firstIndent === _tab) {
-        _tab = indent;
-      }
-    } while (arr.length);
+    const pStyle = arr[i] as IParagraphOnlyStyle;
+    paragraphs.push({
+      sn,
+      marginTop: pStyle.marginTop,
+      marginBottom: pStyle.marginBottom,
+      lineMargin: pStyle.lineMargin,
+      list: this.initParagraph(arr.slice(i, j), width)
+    });
 
     return paragraphs;
   }

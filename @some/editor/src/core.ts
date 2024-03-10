@@ -1,5 +1,5 @@
-import { Scaler, getLineHeight, getLineMarginHalf, getBaseline, getFont, pickParagraph, pickFontStyle } from './helper';
-import { EnWriteType, IBlockSize, ITextStyleNode, IParagraphNode, IDocNode, IRow, ITxtNode } from './types';
+import { Scaler, getLineHeight, getLineMarginHalf, getBaseline, getFont, pickParagraph, pickFontStyle, compParagraphHeight, findGtArray } from './helper';
+import { EnWriteType, IBlockSize, ITextStyleNode, IParagraphNode, IDocNode, IRow, ITxtNode, EnDeleteType, IParagraph } from './types';
 import { PreRender } from './prerender';
 
 export interface IPoint {
@@ -46,7 +46,7 @@ export abstract class Editor {
   private ctx: CanvasRenderingContext2D;
   private _pagePadding: IBlockSize = { top: 20, right: 20, bottom: 20, left: 20 };
   private _onCaretMove?: (p: IPoint) => void;
-  private article: IRow[] = [];
+  private article: IParagraph[] = [];
   protected readonly prerender = new PreRender();
   protected abstract redraw(): void;
 
@@ -110,8 +110,6 @@ export abstract class Editor {
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
     // 页边距
     const { top: paddingTop, right: paddingRight, bottom: paddingBottom, left: paddingLeft } = this._pagePadding;
-    // 文档描述数据
-    const article = this.article;
     // 转换单位
     let x = px2dot(p.x);
     let y = px2dot(p.y);
@@ -119,30 +117,36 @@ export abstract class Editor {
     // 点击可用空间之外
     if (x < paddingLeft || pageWidth - paddingRight < x || y < paddingTop || pageHeight - paddingBottom < y) return;
 
-    let offsetTop = paddingTop;
-    // 行号
-    let rowNo = 0;
+    // 文档描述数据
+    const article = this.article;
+    const pHeightList = article.map(compParagraphHeight);
+    // 段落号
+    let paragraphNo = findGtArray(pHeightList, y - paddingTop);
+    let rowNo = NaN;
+    const isLastParaagraph = paragraphNo === article.length;
+    if (isLastParaagraph) paragraphNo--;
+    const { marginTop, lineMargin, list: lines } = article[paragraphNo];
+    const lineHeights = lines.map(row => getLineHeight(row.baseHeight) * lineMargin);
+    // 前序段所占高度
+    const prefixYOffset = pHeightList.slice(0, paragraphNo).reduce((pre, item) => pre + item, 0);
 
-    // 寻找所在行
-    for (; rowNo < article.length - 1; rowNo++) {
-      const row = article[rowNo];
-      const lineMargin = (row.segments[0] as IParagraphNode).lineMargin;
-      const rowHeight = getLineHeight(row.baseHeight) * lineMargin;
-      const nxtOffsetTop = offsetTop + rowHeight;
-      if (y < nxtOffsetTop) break;
-      offsetTop = nxtOffsetTop;
+    // 超過最後一段 -> 定位到最後一段的最後一行
+    if (isLastParaagraph) {
+      rowNo = lines.length - 1;
+    } else {
+      // 寻找所在行
+      rowNo = findGtArray(lineHeights, y - paddingTop - prefixYOffset - marginTop);
     }
 
-    const row = article[rowNo];
-    const lineMargin = (row.segments[0] as IParagraphNode).lineMargin;
-    
+    y = paddingTop + prefixYOffset + marginTop + lineHeights.slice(0, rowNo).reduce((pre, item) => pre + item, 0);
+    const row = lines[rowNo];
     // 矫正x坐标
-    // this.prerender.getLine(row.segments, x);
+    // this.prerender.getLine(row.line, x);
 
     // 设定光标
     const timer = setTimeout(() => {
       clearTimeout(timer);
-      this.setCaretPoint(x, offsetTop, row.baseHeight, lineMargin);
+      this.setCaretPoint(x, y, row.baseHeight, lineMargin);
     }, 0);
   }
 
@@ -175,15 +179,15 @@ export abstract class Editor {
    * @returns [绘制完成后右上角x坐标, 整行高]
    */
   private drawRow(row: IRow, x: number, y: number) {
-    const { segments, tab, baseHeight } = row;
-    const stylSeg = segments[0] as IParagraphNode;
+    const { line, tab, baseHeight } = row;
+    const stylSeg = line[0] as IParagraphNode;
 
     const [baseline, baseBottom] = getBaseline(baseHeight, stylSeg.lineMargin);
     const _base = y + baseline;
     x += tab;
     const width = this.usableSize.width - tab;
 
-    for (let item of segments) {
+    for (let item of line) {
       if (EnWriteType.FONT_STYLE & item.type) {
         const { BIUS, color, fontFamily } = item as ITextStyleNode;
         const fontSize = (item as ITextStyleNode).fontSize;
@@ -203,10 +207,10 @@ export abstract class Editor {
   }
 
   /**
-   * 初始化绘制一页
+   * 绘制一個自然段
    */
-  protected draw(lines: IRow[]) {
-    this.article = lines;
+  private _drawParagraph(paragraph: IParagraph) {
+    const { sn, list } = paragraph;
     const { width: pageWidth, height: pageHeight } = this.elCanvas;
     const pagePaddingLeft = this._pagePadding.left;
     let y = this._pagePadding.top;
@@ -219,8 +223,8 @@ export abstract class Editor {
     // this.ctx.fillRect(x, y, this.usableSize.width, this.usableSize.height);
     this.ctx.fillStyle = '#333';
 
-    for (const row of lines) {
-      const stylSeg = row.segments[0];
+    for (const row of list) {
+      const stylSeg = row.line[0];
       // 首节点是段落节点，增加段顶距，设置段底距
       if (stylSeg.type === EnWriteType.PARAGRAPH_STYLE) {
         y += paragraphMarginBottom + stylSeg.marginTop;
@@ -230,8 +234,16 @@ export abstract class Editor {
       [x, lineAllHeight] = this.drawRow(row, pagePaddingLeft, y);
     }
 
-    const { baseHeight, segments } = lines[lines.length - 1];
-    this.setCaretPoint(x, y, baseHeight, (segments[0] as IParagraphNode).lineMargin);
+    const { baseHeight, line } = list[list.length - 1];
+    this.setCaretPoint(x, y, baseHeight, (line[0] as IParagraphNode).lineMargin);
+  }
+
+  /**
+   * 绘制整個文章
+   */
+  protected draw(paragraphs: IParagraph[]) {
+    this.article = paragraphs;
+    paragraphs.forEach(segment => this._drawParagraph(segment));
   }
 
   protected drawDom(lines: IDocNode[]) {
@@ -281,5 +293,9 @@ export abstract class Editor {
       const url = URL.createObjectURL(b);
       window.open(url, '_blank');
     }, 'image/png');
+  }
+
+  remove(type: EnDeleteType) {
+
   }
 }

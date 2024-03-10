@@ -6,7 +6,8 @@ import {
   IStyleNode,
   IParagraphNode,
   IDocNode,
-  EnFontStyle
+  EnFontStyle,
+  IParagraph
 } from './types';
 
 let _ppi = 0;
@@ -143,4 +144,22 @@ export async function readJSONFile() {
   const file = await fileHandle.getFile();
   const fc = await blob2Txt(file);
   return JSON.parse(fc);
+}
+
+// 計算段落高度
+export function compParagraphHeight(p: IParagraph) {
+  const { marginTop, marginBottom, lineMargin, list } = p;
+  return list.reduce((pre, item) => pre + getLineHeight(item.baseHeight) * lineMargin, marginTop + marginBottom);
+}
+
+// 查找一個數值在數組中的偏移
+export function findGtArray<T = number>(arr: T[], max: number, fn?: (item: T) => number) {
+  let i = 0;
+  for (; i < arr.length; i++) {
+    const val = fn ? fn(arr[i]) : +(arr[i]);
+    if (max < val) break;
+
+    max -= val;
+  }
+  return i;
 }

@@ -1,4 +1,5 @@
 import { IPoint } from './core';
+import { EnDeleteType } from './types';
 
 export interface IInputerCtrl {
   get element(): HTMLDivElement;
@@ -57,6 +58,7 @@ export class CaretInputer implements IInputerCtrl {
   // 是否开启输入法
   private compositionRef = false;
   private _onInput?: (str: string) => void;
+  private _onDelete?: (type: EnDeleteType) => void;
 
   constructor(className = '', fn?: (str: string) => void) {
     this._onInput = fn;
@@ -90,10 +92,18 @@ export class CaretInputer implements IInputerCtrl {
     this._onInput = fn;
   }
 
+  public set onDelete(fn: (type: EnDeleteType) => void) {
+    this._onDelete = fn;
+  }
+
   private _follow(inputType: string, str: string) {
     switch (inputType) {
       case 'insertParagraph':
         str = '\n';
+        break;
+      case 'backspace':
+        this._onDelete!(EnDeleteType.BACK);
+        return;
     }
     // console.log(`inputType: ${inputType}, str: ${str}`);
     this._onInput!(str);
