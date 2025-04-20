@@ -8,6 +8,7 @@ build
 
 /.pnp
 .pnp.js
+.yarn
 
 # testing
 /coverage

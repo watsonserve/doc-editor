@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef } from 'react';
 import { IToolProps } from './types';
 import { menuList } from './constant';
-import { TabBar } from '@some/ui';
+import TabBar from '@watsonserve/ui/tabbar';
 import FileTools from './file-tools';
 import EditTools from './edit-tools';
 import InsertTools from './insert-tools';

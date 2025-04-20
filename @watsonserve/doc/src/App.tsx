@@ -1,6 +1,6 @@
 import { Suspense, lazy, useRef, useState, useEffect } from 'react';
 import './App.css';
-import EditorView from '@some/editor';
+import EditorView from '@watsonserve/editor';
 import { Syncer } from './helper/syncer';
 
 const Toolbar = lazy(() => import('./components/toolbar'));

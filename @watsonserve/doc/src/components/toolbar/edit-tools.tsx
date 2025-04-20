@@ -2,8 +2,11 @@ import { useMemo, useState } from 'react';
 import { IToolProps } from './types';
 import { fontLevList, fontFamilyList, fontCnSizeDict, lineMarginList } from './constant';
 import ToolBlk from './tool-blk';
-import { Button, Palette, Selector, Steper } from '@some/ui';
-import { EnFontStyle } from '@some/editor';
+import Button from '@watsonserve/ui/button';
+import Palette from '@watsonserve/ui/palette';
+import Selector from '@watsonserve/ui/selector';
+import Steper from '@watsonserve/ui/steper';
+import { EnFontStyle } from '@watsonserve/editor';
 
 const fontSizeRange = (mm: number) => {
   const min = 5;

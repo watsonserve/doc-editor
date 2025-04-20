@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
-import { ISyncer } from '@some/editor';
-import { Channel } from '@some/connector';
+import { ISyncer } from '@watsonserve/editor';
+import { Channel } from '@watsonserve/connector';
 
 export class Syncer extends EventEmitter implements ISyncer {
   private channel = new Channel({

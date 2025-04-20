@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { IToolProps } from './types';
 import ToolBlk from './tool-blk';
-import { Selector } from '@some/ui';
+import Selector from '@watsonserve/ui/selector';
 
 export default function Tools(props: IToolProps) {
   const { config, onChange } = props;

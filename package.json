@@ -2,19 +2,11 @@
   "name": "doc-editor",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "@some/connector",
-    "@some/doc",
-    "@some/editor",
-    "@some/ui"
-  ],
+  "workspaces": ["@watsonserve/*"],
   "scripts": {
-    "upc": "yarn workspace @some/connector build",
-    "upe": "yarn workspace @some/editor build",
-    "upu": "yarn workspace @some/ui build",
-    "up": "yarn upc && yarn upu && yarn upe",
-    "start": "yarn workspace @some/doc start",
-    "build": "yarn up && yarn workspace @some/doc build"
+    "up": "yarn workspace @watsonserve/editor build",
+    "start": "yarn workspace @watsonserve/doc start",
+    "build": "yarn up && yarn workspace @watsonserve/doc build"
   },
   "browserslist": {
     "production": [
