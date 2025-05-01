@@ -4,20 +4,11 @@
   "private": true,
   "workspaces": ["@watsonserve/*"],
   "scripts": {
-    "up": "yarn workspace @watsonserve/editor build",
-    "start": "yarn workspace @watsonserve/doc start",
-    "build": "yarn up && yarn workspace @watsonserve/doc build"
+    "upe": "pnpm --filter @watsonserve/editor build",
+    "start": "pnpm --filter @watsonserve/doc start"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+  "dependencies": {
+    "editor": "link:./@watsonserve/editor/dist"
+  },
+  "packageManager": "pnpm@10.8.1+sha512.c50088ba998c67b8ca8c99df8a5e02fd2ae2e2b29aaf238feaa9e124248d3f48f9fb6db2424949ff901cffbb5e0f0cc1ad6aedb602cd29450751d11c35023677"
 }
